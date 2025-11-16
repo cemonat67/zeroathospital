@@ -127,9 +127,9 @@ const server = http.createServer(async (req,res)=>{
   }
   if (u.pathname==='/logo.png' && req.method==='GET'){
     try{
-      let fp = '/Users/cemonat/Downloads/zah_logo.PNG'
       let buf
-      try{ buf = fs.readFileSync(fp) }catch(_){ fp = '/Users/cemonat/Downloads/zah_logo.png'; buf = fs.readFileSync(fp) }
+      let fp = path.join(__dirname,'images','zah_logo.PNG')
+      try{ buf = fs.readFileSync(fp) }catch(_){ fp = path.join(__dirname,'images','zah_logo.png'); try{ buf = fs.readFileSync(fp) }catch(__){ fp = path.join(__dirname,'zah_logo.PNG'); try{ buf = fs.readFileSync(fp) }catch(___){ fp = path.join(__dirname,'zah_logo.png'); buf = fs.readFileSync(fp) } } }
       res.writeHead(200,{ 'Content-Type':'image/png', 'Content-Length': buf.length, 'Access-Control-Allow-Origin':'*' })
       return res.end(buf)
     }catch(e){ return notf(res) }
@@ -144,7 +144,8 @@ const server = http.createServer(async (req,res)=>{
     for (const f of required){ try{ fs.accessSync(path.join(DATA_DIR,f), fs.constants.R_OK) }catch(_){ missing.push(f) } }
     const status = (fsok && missing.length===0)? 'ok' : 'degraded'
     const free_mb = Math.round(os.freemem()/1024/1024)
-    return ok(res,{ status, timestamp: ts, app:{ uptime_sec: Math.round(process.uptime()), version:'v2.0.0' }, checks:{ filesystem:{ status:'ok', free_mb }, dataFolder:{ status: fsok?'ok':'error', readable, writable }, jsonFiles:{ status: missing.length? 'missing':'ok', missing } } })
+    const env = (process.env.ZERO_ENV||'prod').toLowerCase()
+    return ok(res,{ status, timestamp: ts, app:{ uptime_sec: Math.round(process.uptime()), version:'v2.0.0', env }, checks:{ filesystem:{ status:'ok', free_mb }, dataFolder:{ status: fsok?'ok':'error', readable, writable }, jsonFiles:{ status: missing.length? 'missing':'ok', missing } } })
   }
 
   if (u.pathname==='/api/auth/register' && req.method==='POST'){
@@ -782,6 +783,145 @@ const server = http.createServer(async (req,res)=>{
       }
       writeJson(p, next); return ok(res,{ ok:true })
     }
+  }
+  if (u.pathname==='/api/pilot/init' && req.method==='POST'){
+    try{
+      const mdPath = path.join(__dirname,'HOSPITAL_PILOT_DEMO.MD')
+      const txt = fs.readFileSync(mdPath,'utf8')
+      const lines = txt.split(/\r?\n/).map(s=> s.trim()).filter(Boolean)
+      const hospitals = new Set()
+      for (const s of lines){
+        if (/Hospital/i.test(s) && s.length<=80){
+          let name = s
+          const m = s.match(/\(([^)]+Hospital[^)]*)\)/i)
+          if (m && m[1]) name = m[1]
+          name = name.replace(/\uFEFF|\u200B|\u00A0/g,'').trim()
+          if (/Overview|General Introduction|Location|Capacity|Clinical Services|Digital Infrastructure|Sustainability|Related Projects|Sources/i.test(name)) continue
+          hospitals.add(name)
+        }
+      }
+      function findNumber(re){ const m = txt.match(re); return m? +(m[1]) : NaN }
+      const caps = {
+        'Acıbadem Izmir Kent Hospital': { beds: findNumber(/(\d{2,4})\s*beds/i) || 272, ors: findNumber(/(\d{1,2})\s*modern operating/i) || 12, icu_beds: 40, hospital_type:'private_group', city:'Izmir' },
+        'Bazekol Çiğli Hospital': { beds: 180, ors: 6, icu_beds: 20, hospital_type:'private_chain', city:'Izmir' },
+        'Medical Park Izmir Hospital': { beds: 136, ors: 6, icu_beds: 18, hospital_type:'private_group', city:'Izmir' },
+        'Tınaztepe Galen Hospital': { beds: 100, ors: 6, icu_beds: 25, hospital_type:'university', city:'Izmir' },
+      }
+      const settingsJson = readJson(path.join(DATA_DIR,'settings.json'),{ factors:{ energy_kwh_to_tco2e:0.00042, water_m3_to_tco2e:0.000344, waste_kg_to_tco2e:0.0019, medw_kg_to_tco2e:0.0045 } })
+      const f = settingsJson.factors||{}
+      function makeRow(year, hospital, dept, energy_kwh, water_m3, waste_kg, medw_kg, renPct, recPct){
+        const co2 = +(energy_kwh*(f.energy_kwh_to_tco2e||0) + water_m3*(f.water_m3_to_tco2e||0) + waste_kg*(f.waste_kg_to_tco2e||0) + medw_kg*(f.medw_kg_to_tco2e||0)).toFixed(3)
+        return { year, hospital, country:'TR', dept, energy: Math.round(energy_kwh), water: Math.round(water_m3), waste: Math.round(waste_kg), medw: Math.round(medw_kg), co2, ren: Math.round(renPct), rec: Math.round(recPct) }
+      }
+      const rows = []
+      const yearNow = new Date().getFullYear()
+      const yearPrev = yearNow-1
+      for (let name of hospitals){
+        name = name.replace(/Acıbadem Izmir \(Kent\) Hospital/i,'Acıbadem Izmir Kent Hospital').replace(/Bazekol Health Group.*\(([^)]+)\)/i,'$1')
+        const cap = caps[name] || { beds: 150, ors: 5 }
+        const beds = cap.beds, ors = cap.ors
+        const icu = { energy: beds*800, water: beds*5, waste: beds*20, medw: beds*6 }
+        const orx = { energy: ors*25000, water: ors*200, waste: ors*1000, medw: ors*400 }
+        const onk = { energy: 80000, water: 200, waste: 300, medw: 150 }
+        const img = { energy: 50000, water: 100, waste: 80, medw: 20 }
+        rows.push(makeRow(yearPrev, name, 'ICU', icu.energy, icu.water, icu.waste, icu.medw, 22, 32))
+        rows.push(makeRow(yearPrev, name, 'OR', orx.energy, orx.water, orx.waste, orx.medw, 20, 30))
+        rows.push(makeRow(yearPrev, name, 'Oncology', onk.energy, onk.water, onk.waste, onk.medw, 24, 34))
+        rows.push(makeRow(yearPrev, name, 'Imaging', img.energy, img.water, img.waste, img.medw, 26, 40))
+        rows.push(makeRow(yearNow, name, 'ICU', icu.energy*0.95, icu.water*0.98, icu.waste*0.96, icu.medw*0.95, 26, 36))
+        rows.push(makeRow(yearNow, name, 'OR', orx.energy*0.94, orx.water*0.97, orx.waste*0.95, orx.medw*0.94, 24, 35))
+        rows.push(makeRow(yearNow, name, 'Oncology', onk.energy*0.93, onk.water*0.97, onk.waste*0.95, onk.medw*0.93, 28, 38))
+        rows.push(makeRow(yearNow, name, 'Imaging', img.energy*0.92, img.water*0.97, img.waste*0.95, img.medw*0.92, 30, 45))
+      }
+      writeJson(path.join(DATA_DIR,'dataset.json'),{ rows })
+      const cp = path.join(DATA_DIR,'campus_defs.json')
+      const cur = readJson(cp,{ campuses:[] })
+      const added = []
+      for (const h of Array.from(hospitals)){
+        if (!cur.campuses.find(c=> c.name===h)){
+          const meta = caps[h]||{ beds:150, ors:5, icu_beds:20, hospital_type:'private', city:'Izmir' }
+          const targets = { co2_target_t: 300, energy_target_kwh: 250000, water_target_m3: 5000, insurance_threshold_t: 300, renewables_target_pct: 30, recycling_target_pct: 35 }
+          cur.campuses.push({ name:h, type:'hospital', notes:'Izmir Pilot', beds: meta.beds, or_rooms: meta.ors, icu_beds: meta.icu_beds, hospital_type: meta.hospital_type, city: meta.city, targets })
+          added.push(h)
+        }
+      }
+      writeJson(cp, cur)
+      const arPath = path.join(DATA_DIR,'alert_rules.json')
+      const ar = readJson(arPath,{ rules:[] })
+      const baseRules = [
+        { name:'ICU High Energy', rule:'dept=="ICU" && energy>200000', enabled:true },
+        { name:'OR High MedWaste', rule:'dept=="OR" && medw>800', enabled:true },
+        { name:'Oncology Waste Alert', rule:'dept=="Oncology" && waste>400', enabled:true },
+        { name:'Imaging Energy Alert', rule:'dept=="Imaging" && energy>60000', enabled:true },
+        { name:'Acibadem ICU Water', rule:'hospital=="Acıbadem Izmir Kent Hospital" && dept=="ICU" && water>1500', enabled:true },
+        { name:'Medical Park OR Waste', rule:'hospital=="Medical Park Izmir Hospital" && dept=="OR" && waste>1200', enabled:true },
+        { name:'Bazekol Imaging Energy', rule:'hospital=="Bazekol Çiğli Hospital" && dept=="Imaging" && energy>55000', enabled:true },
+        { name:'Tınaztepe Oncology MedWaste', rule:'hospital=="Tınaztepe Galen Hospital" && dept=="Oncology" && medw>200', enabled:true },
+        { name:'Low Recycling Warning', rule:'rec<20', enabled:true }
+      ]
+      for (const r of baseRules){ if (!ar.rules.find(x=> x.name===r.name)) ar.rules.push(Object.assign({ id:'r_'+Date.now()+Math.random().toString(36).slice(2,6) }, r)) }
+      writeJson(arPath, ar)
+      const tp = path.join(DATA_DIR,'tasks.json')
+      const tj = readJson(tp,{ tasks:[] })
+      const sampleTasks = [
+        { title:'Acıbadem İzmir ICU – high water usage', dept:'ICU' },
+        { title:'Tınaztepe Galen Imaging – energy efficiency check', dept:'Imaging' },
+        { title:'Medical Park OR – medical waste audit', dept:'OR' },
+        { title:'Bazekol Çiğli Oncology – waste segregation training', dept:'Oncology' }
+      ]
+      for (const st of sampleTasks){ if (!tj.tasks.find(t=> t.title===st.title)){ tj.tasks.push({ id:'t_'+Date.now()+Math.random().toString(36).slice(2,6), title: st.title, dept: st.dept, assignee:'', status:'open', sla_due: new Date(Date.now()+5*24*60*60*1000).toISOString().slice(0,10), created_at: Date.now(), closed_at: null, notes:'' }) } }
+      writeJson(tp, tj)
+      return ok(res,{ ok:true, hospitals: Array.from(hospitals), rows: rows.length, campuses_added: added })
+    }catch(e){ return bad(res, e.message||e) }
+  }
+
+  if (u.pathname==='/api/demo/hsp-load' && req.method==='POST'){
+    try{
+      const hp = path.join(DATA_DIR,'hsp_demo_data.json')
+      const demo = readJson(hp,{})
+      const rows = Array.isArray(demo.annual_records)? demo.annual_records : []
+      const outRows = rows.map(r=> ({
+        year: r.year,
+        hospital: r.hospital,
+        country: 'TR',
+        dept: r.dept,
+        energy: +r.energy_kwh||0,
+        water: +r.water_m3||0,
+        waste: +r.waste_kg||0,
+        medw: +r.med_waste_kg||0,
+        co2: +r.co2e_t||0,
+        ren: +r.ren_pct||0,
+        rec: +r.rec_pct||0,
+        status: r.status||''
+      }))
+      const dsetPath = path.join(DATA_DIR,'dataset.json')
+      const cur = readJson(dsetPath,{ rows:[] })
+      cur.rows = Array.isArray(cur.rows)? cur.rows : []
+      cur.rows = cur.rows.concat(outRows)
+      writeJson(dsetPath, cur)
+      const campusPath = path.join(DATA_DIR,'campus_defs.json')
+      const campuses = readJson(campusPath,{ campuses:[] })
+      campuses.campuses = campuses.campuses||[]
+      for (const c of (demo.campuses||[])){
+        const name = c.name
+        if (!campuses.campuses.find(x=> x.name===name)){
+          campuses.campuses.push({ campus_id: name.toLowerCase().replace(/\s+/g,'_'), name, short_name: name, city: c.city, country:'TR', type: c.type.toLowerCase().replace(/\s+/g,'_'), segment: 'tertiary_care', beds_total: c.beds, icu_beds: Math.round(c.beds*0.2), or_count: 8, has_nicu: true, owner_group: '', grid_profile:'TR-Grid-2025', tags:[], scopes:{ scope1:true, scope2:true, scope3:true } })
+        }
+      }
+      writeJson(campusPath, campuses)
+      const taxPath = path.join(DATA_DIR,'taxonomy_alignments.json')
+      const tax = readJson(taxPath,{ campuses:[] })
+      tax.campuses = tax.campuses||[]
+      for (const t of (demo.taxonomy_align||[])){
+        const id = (campuses.campuses.find(x=> x.name===t.campus)||{}).campus_id || t.campus
+        const existing = tax.campuses.find(x=> x.campus_id===id)
+        const rec = { campus_id: id, eligible_revenue_mtl: t.eligible_revenue_mtl, taxonomy_eligible_revenue_pct: null, taxonomy_aligned_revenue_pct: t.aligned_revenue_pct, taxonomy_aligned_capex_pct: t.aligned_capex_pct, after_dnsh_pct: t.after_dnsh_pct, esrs_gap_score: t.esrs_gap_score, dns_h_status: (t.after_dnsh_pct>=0.1? 'amber':'green') }
+        if (existing){ Object.assign(existing, rec) } else { tax.campuses.push(rec) }
+      }
+      writeJson(taxPath, tax)
+      writeJson(path.join(DATA_DIR,'alerts_log.json'), demo.alerts||{ medical_waste:[], energy_spike:[] })
+      return ok(res,{ ok:true, rows_added: outRows.length, campuses: (demo.campuses||[]).length })
+    }catch(e){ return bad(res, e.message||e) }
   }
   if (u.pathname==='/api/insurance/impact' && req.method==='POST'){
     const body = await parseBody(req)
@@ -2033,6 +2173,184 @@ const server = http.createServer(async (req,res)=>{
   }
 
 
+  if (u.pathname==='/api/case-mix' && req.method==='GET'){
+    const p = path.join(DATA_DIR,'case_mix.json')
+    const j = readJson(p,{ campuses:[] })
+    return ok(res, j)
+  }
+
+  if (u.pathname==='/api/dept/profiles' && req.method==='GET'){
+    const p = path.join(DATA_DIR,'dept_profiles.json')
+    const def = { profiles:[ { dept:'ICU', dept_type:'clinical', risk_level:'high', scope_weights:{ s1:0.5, s2:0.4, s3:0.1 }, occupancy_sensitivity:0.9, baseline_energy:300000, baseline_water:6000 }, { dept:'OR', dept_type:'clinical', risk_level:'high', scope_weights:{ s1:0.4, s2:0.5, s3:0.1 }, occupancy_sensitivity:0.8, baseline_energy:260000, baseline_water:5100 }, { dept:'Oncology', dept_type:'clinical', risk_level:'medium', scope_weights:{ s1:0.3, s2:0.5, s3:0.2 }, occupancy_sensitivity:0.7, baseline_energy:180000, baseline_water:2000 }, { dept:'Imaging', dept_type:'support', risk_level:'medium', scope_weights:{ s1:0.2, s2:0.6, s3:0.2 }, occupancy_sensitivity:0.5, baseline_energy:60000, baseline_water:1200 } ] }
+    const j = readJson(p, def)
+    return ok(res, j)
+  }
+
+  if (u.pathname==='/api/ecp/calc' && req.method==='POST'){
+    const body = await parseBody(req)
+    const pathway_id = String(body.pathway_id||'').trim()
+    const p = path.join(DATA_DIR,'ecp_profiles.json')
+    const profs = readJson(p,{ pathways:[] }).pathways
+    const pf = profs.find(x=> x.pathway_id===pathway_id)
+    if (!pf) return bad(res,'not_found')
+    const consLib = readJson(path.join(DATA_DIR,'consumables_factors.json'),{ items:[] }).items
+    let total = 0
+    const per_step = []
+    for (const s of pf.steps||[]){
+      const base = +s.base_co2||0
+      let cons = 0
+      for (const it of (s.consumables_profile||[])){ const f = consLib.find(x=> x.item_code===it.item_code); const kg = (f? +f.kg_co2e_per_unit: 0) * (+it.qty||0); cons += kg/1000.0 }
+      const step_total = +(base + cons).toFixed(3)
+      total += step_total
+      per_step.push({ dept:s.dept, total_co2: step_total })
+    }
+    const per_patient = total
+    return ok(res,{ pathway_id, total_co2:+total.toFixed(3), per_step, per_patient:+per_patient.toFixed(3) })
+  }
+
+  if (u.pathname==='/api/consumables' && req.method==='GET'){
+    const j = readJson(path.join(DATA_DIR,'consumables_factors.json'),{ items:[] })
+    return ok(res, j)
+  }
+  if (u.pathname==='/api/consumables/usage' && req.method==='POST'){
+    const body = await parseBody(req)
+    const items = Array.isArray(body.items)? body.items : [{ item_code:String(body.item_code||''), qty:+(body.qty||0) }]
+    const lib = readJson(path.join(DATA_DIR,'consumables_factors.json'),{ items:[] }).items
+    let kg=0
+    for (const it of items){ const f = lib.find(x=> x.item_code===String(it.item_code||'')); if (f) kg += (+f.kg_co2e_per_unit||0) * (+it.qty||0) }
+    return ok(res,{ total_kgco2e:+kg.toFixed(2), tCO2e:+(kg/1000).toFixed(3) })
+  }
+
+  if (u.pathname==='/api/finance/tariffs'){
+    const p = path.join(DATA_DIR,'tariffs.json')
+    if (req.method==='GET'){ const j = readJson(p,{ tariffs:{} }); return ok(res, j) }
+    if (req.method==='POST'){ if (usersExist() && !requireAuth(req)) return bad(res,'auth_required'); const body = await parseBody(req); writeJson(p, body||{}); return ok(res,{ ok:true }) }
+  }
+  if (u.pathname==='/api/finance/apply-tariffs' && req.method==='POST'){
+    const body = await parseBody(req)
+    const hospital = String(body.hospital||'').trim()
+    const dset = readJson(path.join(DATA_DIR,'dataset.json'),{ rows:[] })
+    let rows = dset.rows
+    if (hospital) rows = rows.filter(r=> String(r.hospital||'')===hospital)
+    const tjson = readJson(path.join(DATA_DIR,'tariffs.json'),{ tariffs:{} })
+    const tz = tjson.tariffs||{}
+    const elect = tz.electricity_tr_2025 || { currency:'TRY', unit:'kWh', price:0.75 }
+    const water = tz.water_tr_2025 || { currency:'TRY', unit:'m3', price:10 }
+    const wgen = tz.waste_general_tr_2025 || { currency:'TRY', unit:'kg', price:0.8 }
+    const wmed = tz.waste_medical_tr_2025 || { currency:'TRY', unit:'kg', price:3.5 }
+    const sum = (arr,k)=> arr.reduce((a,x)=> a + (+x[k]||0), 0)
+    const energy_cost = sum(rows,'energy') * (+elect.price||0)
+    const water_cost = sum(rows,'water') * (+water.price||0)
+    const waste_cost = sum(rows,'waste') * (+wgen.price||0) + sum(rows,'medw') * (+wmed.price||0)
+    const total = energy_cost + water_cost + waste_cost
+    return ok(res,{ currency: String(elect.currency||'TRY'), energy_cost:+energy_cost.toFixed(2), water_cost:+water_cost.toFixed(2), waste_cost:+waste_cost.toFixed(2), total:+total.toFixed(2) })
+  }
+  if (u.pathname==='/api/finance/savings' && req.method==='POST'){
+    const body = await parseBody(req)
+    const hospital = String(body.hospital||'').trim()
+    const r = await (async ()=>{ const resp = { currency:'TRY', current_cost:0, potential_savings:0, scenarios:[] }; const applied = await (async ()=>{ const b = JSON.stringify({ hospital }); return await new Promise(resolve=>{ const req2 = http.request({ hostname:'localhost', port: PORT, path:'/api/finance/apply-tariffs', method:'POST', headers:{ 'Content-Type':'application/json' } }, res2=>{ let data=''; res2.on('data',c=> data+=c); res2.on('end',()=>{ try{ resolve(JSON.parse(data)) }catch(_){ resolve({}) } }) }); req2.on('error',()=>resolve({})); req2.write(b); req2.end() }) })(); const cur = +applied.total||0; const pot10 = +(cur*0.1).toFixed(2); resp.currency = applied.currency||'TRY'; resp.current_cost = +cur.toFixed(2); resp.potential_savings = pot10; resp.scenarios = [ { name:'Reduce energy 10%', savings:+(applied.energy_cost*0.1).toFixed(2) }, { name:'Reduce water 10%', savings:+(applied.water_cost*0.1).toFixed(2) }, { name:'Reduce waste 10%', savings:+(applied.waste_cost*0.1).toFixed(2) } ]; return resp })()
+    return ok(res, r)
+  }
+
+  if (u.pathname==='/api/risk/matrix' && req.method==='GET'){
+    const cp = readJson(path.join(DATA_DIR,'campus_defs.json'),{ campuses:[] }).campuses
+    const align = readJson(path.join(DATA_DIR,'taxonomy_alignments.json'),{ campuses:[] }).campuses
+    const out = (cp||[]).map(c=>{ const a = align.find(x=> x.campus_id===(c.campus_id||c.name)); const esrs = a? ((+a.esrs_gap_score||0)>50? 'amber' : (+a.esrs_gap_score||0)>35? 'amber':'green') : 'amber'; const dnsh = a? (String(a.dns_h_status||'amber')) : 'amber'; return { campus_id: c.campus_id||c.name, jci:'green', esrs, dnsh } })
+    return ok(res,{ campuses: out })
+  }
+
+  if (u.pathname==='/api/eu/taxonomy/alignments' && req.method==='GET'){
+    const j = readJson(path.join(DATA_DIR,'taxonomy_alignments.json'),{ campuses:[] })
+    return ok(res, j)
+  }
+  if (u.pathname==='/api/eu/taxonomy' && req.method==='GET'){
+    const j = readJson(path.join(DATA_DIR,'taxonomy_alignments.json'),{ campuses:[] })
+    return ok(res, j)
+  }
+
+  if (u.pathname==='/api/gd/projects' && req.method==='GET'){
+    const j = readJson(path.join(DATA_DIR,'ecp_profiles.json'),{ projects:[] })
+    return ok(res, j)
+  }
+
+  if (u.pathname==='/api/clinical/normalized2' && req.method==='GET'){
+    const dset = readJson(path.join(DATA_DIR,'dataset.json'),{ rows:[] })
+    const vol = readJson(path.join(DATA_DIR,'clinical_volume.json'),{ volumes:[] }).volumes
+    const sum = (arr,k)=> arr.reduce((a,x)=> a + (+x[k]||0), 0)
+    const co2 = sum(dset.rows,'co2') + sum(dset.rows,'scope3_extra')
+    const inpatients = sum(vol,'inpatients')
+    const surgeries = sum(vol,'surgeries')
+    const icu_days = sum(vol,'icu_days')
+    const per_patient = inpatients? +(co2/inpatients).toFixed(3) : null
+    const per_surgery = surgeries? +(co2/surgeries).toFixed(3) : null
+    const per_icu_day = icu_days? +(co2/icu_days).toFixed(3) : null
+    return ok(res,{ co2_total:+co2.toFixed(3), per_patient, per_surgery, per_icu_day })
+  }
+
+  if (u.pathname==='/api/seasonality'){
+    const p = path.join(DATA_DIR,'seasonality.json')
+    const j = readJson(p,{ profiles:[] })
+    if (req.method==='GET'){
+      const hospital = String(u.query.hospital||'').trim()
+      const cp = readJson(path.join(DATA_DIR,'campus_defs.json'),{ campuses:[] }).campuses
+      const c = cp.find(x=> String(x.name||'')===hospital)
+      const id = c? (c.campus_id||c.name) : ''
+      const prof = j.profiles.find(x=> x.campus_id===id)
+      return ok(res,{ campus_id:id||null, weights: prof? prof.weights: null })
+    }
+  }
+
+  if (u.pathname==='/api/facility/hvac-analyze' && req.method==='POST'){
+    const body = await parseBody(req)
+    const readings = readJson(path.join(DATA_DIR,'meter_readings.json'),{ readings:[] }).readings
+    const campus = String(body.campus||'').trim()
+    const hvac = readings.filter(r=> /hvac/i.test(r.meter) && (!campus || r.hospital===campus)).slice(-500)
+    const mean = hvac.length? hvac.reduce((a,x)=> a + (+x.value||0), 0)/hvac.length : 0
+    const night = hvac.filter(r=>{ const h=new Date(r.t).getHours(); return h>=0&&h<6 }).reduce((a,x)=> a+(+x.value||0),0)/(hvac.filter(r=>{ const h=new Date(r.t).getHours(); return h>=0&&h<6 }).length||1)
+    const flag = night > mean*0.8
+    return ok(res,{ campus, anomaly: flag, summary:{ mean:+mean.toFixed(2), night:+night.toFixed(2) } })
+  }
+  if (u.pathname==='/api/facility/or-idle' && req.method==='POST'){
+    const body = await parseBody(req)
+    const readings = readJson(path.join(DATA_DIR,'meter_readings.json'),{ readings:[] }).readings
+    const campus = String(body.campus||'').trim()
+    const orx = readings.filter(r=> /OR_|OR|operating/i.test(r.meter) && (!campus || r.hospital===campus)).slice(-500)
+    const idle = orx.filter(r=>{ const h=new Date(r.t).getHours(); return h>=22||h<6 }).reduce((a,x)=> a+(+x.value||0),0)/(orx.filter(r=>{ const h=new Date(r.t).getHours(); return h>=22||h<6 }).length||1)
+    const flag = idle > 1000
+    return ok(res,{ campus, anomaly: flag, summary:{ idle:+idle.toFixed(2) } })
+  }
+  if (u.pathname==='/api/facility/autotask-from-event' && req.method==='POST'){
+    if (usersExist() && !requireAuth(req)) return bad(res,'auth_required')
+    const body = await parseBody(req)
+    const eventRow = body.row||{}
+    const rules = readJson(path.join(DATA_DIR,'alert_rules.json'),{ rules:[] }).rules
+    function clauseOk(clause, row){ clause=String(clause||'').trim(); let m; m=clause.match(/^dept=="([^"]+)"$/); if (m) return String(row.dept||'')===m[1]; m=clause.match(/^hospital=="([^"]+)"$/); if (m) return String(row.hospital||'')===m[1]; m=clause.match(/^(year|energy|water|waste|medw|co2|ren|rec)\s*(>=|<=|==|!=|>|<)\s*([0-9]+(?:\.[0-9]+)?)$/); if (m){ const field=m[1],op=m[2],val=+m[3]; const rv=+row[field]; if (Number.isNaN(rv)) return false; if (op==='>') return rv>val; if (op==='>=') return rv>=val; if (op==='<') return rv<val; if (op==='<=') return rv<=val; if (op==='==') return rv==val; if (op==='!=') return rv!=val; return false } return false }
+    function ruleMatch(rule,row){ const parts=String(rule||'').split('&&').map(x=> x.trim()).filter(Boolean); return parts.every(p=> clauseOk(p,row)) }
+    const pTasks = path.join(DATA_DIR,'tasks.json')
+    const jTasks = readJson(pTasks,{ tasks:[] })
+    let created=0
+    for (const r of rules){ if (ruleMatch(r.rule, eventRow)){ jTasks.tasks.push({ id:'t_'+Date.now()+Math.random().toString(36).slice(2,6), title:`${r.name} triggered`, dept: String(eventRow.dept||''), assignee:'', status:'open', sla_due: new Date(Date.now()+7*24*60*60*1000).toISOString().slice(0,10), created_at: Date.now(), closed_at: null, notes: JSON.stringify(eventRow) }); created++ } }
+    writeJson(pTasks, jTasks)
+    return ok(res,{ ok:true, created })
+  }
+  if (u.pathname==='/api/seasonality/apply' && req.method==='POST'){
+    const body = await parseBody(req)
+    const hospital = String(body.hospital||'').trim()
+    const metric = String(body.metric||'energy')
+    const annual = +(body.annual_value||0)
+    const cp = readJson(path.join(DATA_DIR,'campus_defs.json'),{ campuses:[] }).campuses
+    const c = cp.find(x=> String(x.name||'')===hospital)
+    const id = c? (x=> x.campus_id||x.name)(c) : ''
+    const sj = readJson(path.join(DATA_DIR,'seasonality.json'),{ seasonality:[] })
+    const prof = (sj.seasonality||[]).find(x=> x.campus_id===id && String(x.metric||'')===metric)
+    const weights = prof && Array.isArray(prof.monthly_weights)? prof.monthly_weights : []
+    if (!weights.length || annual<=0) return ok(res,{ campus_id:id||null, metric, monthly: [] })
+    const sumw = weights.reduce((a,x)=> a + (+x||0), 0) || 1
+    const monthly = weights.map(w=> +((annual * (w/sumw))).toFixed(3))
+    return ok(res,{ campus_id:id, metric, monthly })
+  }
+
+
   return notf(res)
 })
 
@@ -2139,5 +2457,225 @@ setInterval(()=>{
 }, 15000)
 
   
+async function UNUSED_BLOCK(){
+  if (u.pathname==='/api/case-mix' && req.method==='GET'){
+    const p = path.join(DATA_DIR,'case_mix.json')
+    const j = readJson(p,{ campuses:[] })
+    return ok(res, j)
+  }
 
-  
+  if (u.pathname==='/api/dept/profiles' && req.method==='GET'){
+    const p = path.join(DATA_DIR,'dept_profiles.json')
+    const def = { profiles:[ { dept:'ICU', dept_type:'clinical', risk_level:'high', scope_weights:{ s1:0.5, s2:0.4, s3:0.1 }, occupancy_sensitivity:0.9, baseline_energy:300000, baseline_water:6000 }, { dept:'OR', dept_type:'clinical', risk_level:'high', scope_weights:{ s1:0.4, s2:0.5, s3:0.1 }, occupancy_sensitivity:0.8, baseline_energy:260000, baseline_water:5100 }, { dept:'Oncology', dept_type:'clinical', risk_level:'medium', scope_weights:{ s1:0.3, s2:0.5, s3:0.2 }, occupancy_sensitivity:0.7, baseline_energy:180000, baseline_water:2000 }, { dept:'Imaging', dept_type:'support', risk_level:'medium', scope_weights:{ s1:0.2, s2:0.6, s3:0.2 }, occupancy_sensitivity:0.5, baseline_energy:60000, baseline_water:1200 } ] }
+    const j = readJson(p, def)
+    return ok(res, j)
+  }
+
+  if (u.pathname==='/api/ecp/calc' && req.method==='POST'){
+    const body = await parseBody(req)
+    const pathway_id = String(body.pathway_id||'').trim()
+    const p = path.join(DATA_DIR,'ecp_profiles.json')
+    const profs = readJson(p,{ pathways:[] }).pathways
+    const pf = profs.find(x=> x.pathway_id===pathway_id)
+    if (!pf) return bad(res,'not_found')
+    const consLib = readJson(path.join(DATA_DIR,'consumables_factors.json'),{ items:[] }).items
+    let total = 0
+    const per_step = []
+    for (const s of pf.steps||[]){
+      const base = +s.base_co2||0
+      let cons = 0
+      for (const it of (s.consumables_profile||[])){ const f = consLib.find(x=> x.item_code===it.item_code); const kg = (f? +f.kg_co2e_per_unit: 0) * (+it.qty||0); cons += kg/1000.0 }
+      const step_total = +(base + cons).toFixed(3)
+      total += step_total
+      per_step.push({ dept:s.dept, total_co2: step_total })
+    }
+    const per_patient = total
+    return ok(res,{ pathway_id, total_co2:+total.toFixed(3), per_step, per_patient:+per_patient.toFixed(3) })
+  }
+
+  if (u.pathname==='/api/consumables' && req.method==='GET'){
+    const j = readJson(path.join(DATA_DIR,'consumables_factors.json'),{ items:[] })
+    return ok(res, j)
+  }
+  if (u.pathname==='/api/consumables/usage' && req.method==='POST'){
+    const body = await parseBody(req)
+    const items = Array.isArray(body.items)? body.items : [{ item_code:String(body.item_code||''), qty:+(body.qty||0) }]
+    const lib = readJson(path.join(DATA_DIR,'consumables_factors.json'),{ items:[] }).items
+    let kg=0
+    for (const it of items){ const f = lib.find(x=> x.item_code===String(it.item_code||'')); if (f) kg += (+f.kg_co2e_per_unit||0) * (+it.qty||0) }
+    return ok(res,{ total_kgco2e:+kg.toFixed(2), tCO2e:+(kg/1000).toFixed(3) })
+  }
+
+  if (u.pathname==='/api/finance/tariffs'){
+    const p = path.join(DATA_DIR,'tariffs.json')
+    if (req.method==='GET'){ const j = readJson(p,{ tariffs:{} }); return ok(res, j) }
+    if (req.method==='POST'){ if (usersExist() && !requireAuth(req)) return bad(res,'auth_required'); const body = await parseBody(req); writeJson(p, body||{}); return ok(res,{ ok:true }) }
+  }
+  if (u.pathname==='/api/finance/apply-tariffs' && req.method==='POST'){
+    const body = await parseBody(req)
+    const hospital = String(body.hospital||'').trim()
+    const dset = readJson(path.join(DATA_DIR,'dataset.json'),{ rows:[] })
+    let rows = dset.rows
+    if (hospital) rows = rows.filter(r=> String(r.hospital||'')===hospital)
+    const tjson = readJson(path.join(DATA_DIR,'tariffs.json'),{ tariffs:{} })
+    const tz = tjson.tariffs||{}
+    const elect = tz.electricity_tr_2025 || { currency:'TRY', unit:'kWh', price:0.75 }
+    const water = tz.water_tr_2025 || { currency:'TRY', unit:'m3', price:10 }
+    const wgen = tz.waste_general_tr_2025 || { currency:'TRY', unit:'kg', price:0.8 }
+    const wmed = tz.waste_medical_tr_2025 || { currency:'TRY', unit:'kg', price:3.5 }
+    const sum = (arr,k)=> arr.reduce((a,x)=> a + (+x[k]||0), 0)
+    const energy_cost = sum(rows,'energy') * (+elect.price||0)
+    const water_cost = sum(rows,'water') * (+water.price||0)
+    const waste_cost = sum(rows,'waste') * (+wgen.price||0) + sum(rows,'medw') * (+wmed.price||0)
+    const total = energy_cost + water_cost + waste_cost
+    return ok(res,{ currency: String(elect.currency||'TRY'), energy_cost:+energy_cost.toFixed(2), water_cost:+water_cost.toFixed(2), waste_cost:+waste_cost.toFixed(2), total:+total.toFixed(2) })
+  }
+  if (u.pathname==='/api/finance/savings' && req.method==='POST'){
+    const body = await parseBody(req)
+    const hospital = String(body.hospital||'').trim()
+    const r = await (async ()=>{ const resp = { currency:'TRY', current_cost:0, potential_savings:0, scenarios:[] }; const applied = await (async ()=>{ const b = JSON.stringify({ hospital }); return await new Promise(resolve=>{ const req2 = http.request({ hostname:'localhost', port: PORT, path:'/api/finance/apply-tariffs', method:'POST', headers:{ 'Content-Type':'application/json' } }, res2=>{ let data=''; res2.on('data',c=> data+=c); res2.on('end',()=>{ try{ resolve(JSON.parse(data)) }catch(_){ resolve({}) } }) }); req2.on('error',()=>resolve({})); req2.write(b); req2.end() }) })(); const cur = +applied.total||0; const pot10 = +(cur*0.1).toFixed(2); resp.currency = applied.currency||'TRY'; resp.current_cost = +cur.toFixed(2); resp.potential_savings = pot10; resp.scenarios = [ { name:'Reduce energy 10%', savings:+(applied.energy_cost*0.1).toFixed(2) }, { name:'Reduce water 10%', savings:+(applied.water_cost*0.1).toFixed(2) }, { name:'Reduce waste 10%', savings:+(applied.waste_cost*0.1).toFixed(2) } ]; return resp })()
+    return ok(res, r)
+  }
+
+  if (u.pathname==='/api/risk/matrix' && req.method==='GET'){
+    const cp = readJson(path.join(DATA_DIR,'campus_defs.json'),{ campuses:[] }).campuses
+    const align = readJson(path.join(DATA_DIR,'taxonomy_alignments.json'),{ campuses:[] }).campuses
+    const out = (cp||[]).map(c=>{ const a = align.find(x=> x.campus_id===(c.campus_id||c.name)); const esrs = a? ((+a.esrs_gap_score||0)>50? 'amber' : (+a.esrs_gap_score||0)>35? 'amber':'green') : 'amber'; const dnsh = a? (String(a.dns_h_status||'amber')) : 'amber'; return { campus_id: c.campus_id||c.name, jci:'green', esrs, dnsh } })
+    return ok(res,{ campuses: out })
+  }
+
+  if (u.pathname==='/api/eu/taxonomy/alignments' && req.method==='GET'){
+    const j = readJson(path.join(DATA_DIR,'taxonomy_alignments.json'),{ campuses:[] })
+    return ok(res, j)
+  }
+  if (u.pathname==='/api/eu/taxonomy' && req.method==='GET'){
+    const j = readJson(path.join(DATA_DIR,'taxonomy_alignments.json'),{ campuses:[] })
+    return ok(res, j)
+  }
+
+  if (u.pathname==='/api/gd/projects' && req.method==='GET'){
+    const j = readJson(path.join(DATA_DIR,'ecp_profiles.json'),{ projects:[] })
+    return ok(res, j)
+  }
+
+  if (u.pathname==='/api/clinical/normalized2' && req.method==='GET'){
+    const dset = readJson(path.join(DATA_DIR,'dataset.json'),{ rows:[] })
+    const vol = readJson(path.join(DATA_DIR,'clinical_volume.json'),{ volumes:[] }).volumes
+    const sum = (arr,k)=> arr.reduce((a,x)=> a + (+x[k]||0), 0)
+    const co2 = sum(dset.rows,'co2') + sum(dset.rows,'scope3_extra')
+    const inpatients = sum(vol,'inpatients')
+    const surgeries = sum(vol,'surgeries')
+    const icu_days = sum(vol,'icu_days')
+    const per_patient = inpatients? +(co2/inpatients).toFixed(3) : null
+    const per_surgery = surgeries? +(co2/surgeries).toFixed(3) : null
+    const per_icu_day = icu_days? +(co2/icu_days).toFixed(3) : null
+    return ok(res,{ co2_total:+co2.toFixed(3), per_patient, per_surgery, per_icu_day })
+  }
+
+  if (u.pathname==='/api/seasonality'){
+    const p = path.join(DATA_DIR,'seasonality.json')
+    const j = readJson(p,{ profiles:[] })
+    if (req.method==='GET'){
+      const hospital = String(u.query.hospital||'').trim()
+      const cp = readJson(path.join(DATA_DIR,'campus_defs.json'),{ campuses:[] }).campuses
+      const c = cp.find(x=> String(x.name||'')===hospital)
+      const id = c? (c.campus_id||c.name) : ''
+      const prof = j.profiles.find(x=> x.campus_id===id)
+      return ok(res,{ campus_id:id||null, weights: prof? prof.weights: null })
+    }
+  }
+
+  if (u.pathname==='/api/facility/hvac-analyze' && req.method==='POST'){
+    const body = await parseBody(req)
+    const readings = readJson(path.join(DATA_DIR,'meter_readings.json'),{ readings:[] }).readings
+    const campus = String(body.campus||'').trim()
+    const hvac = readings.filter(r=> /hvac/i.test(r.meter) && (!campus || r.hospital===campus)).slice(-500)
+    const mean = hvac.length? hvac.reduce((a,x)=> a + (+x.value||0), 0)/hvac.length : 0
+    const night = hvac.filter(r=>{ const h=new Date(r.t).getHours(); return h>=0&&h<6 }).reduce((a,x)=> a+(+x.value||0),0)/(hvac.filter(r=>{ const h=new Date(r.t).getHours(); return h>=0&&h<6 }).length||1)
+    const flag = night > mean*0.8
+    return ok(res,{ campus, anomaly: flag, summary:{ mean:+mean.toFixed(2), night:+night.toFixed(2) } })
+  }
+  if (u.pathname==='/api/facility/or-idle' && req.method==='POST'){
+    const body = await parseBody(req)
+    const readings = readJson(path.join(DATA_DIR,'meter_readings.json'),{ readings:[] }).readings
+    const campus = String(body.campus||'').trim()
+    const orx = readings.filter(r=> /OR_|OR|operating/i.test(r.meter) && (!campus || r.hospital===campus)).slice(-500)
+    const idle = orx.filter(r=>{ const h=new Date(r.t).getHours(); return h>=22||h<6 }).reduce((a,x)=> a+(+x.value||0),0)/(orx.filter(r=>{ const h=new Date(r.t).getHours(); return h>=22||h<6 }).length||1)
+    const flag = idle > 1000
+    return ok(res,{ campus, anomaly: flag, summary:{ idle:+idle.toFixed(2) } })
+  }
+  if (u.pathname==='/api/facility/autotask-from-event' && req.method==='POST'){
+    if (usersExist() && !requireAuth(req)) return bad(res,'auth_required')
+    const body = await parseBody(req)
+    const eventRow = body.row||{}
+    const rules = readJson(path.join(DATA_DIR,'alert_rules.json'),{ rules:[] }).rules
+    function clauseOk(clause, row){ clause=String(clause||'').trim(); let m; m=clause.match(/^dept=="([^"]+)"$/); if (m) return String(row.dept||'')===m[1]; m=clause.match(/^hospital=="([^"]+)"$/); if (m) return String(row.hospital||'')===m[1]; m=clause.match(/^(year|energy|water|waste|medw|co2|ren|rec)\s*(>=|<=|==|!=|>|<)\s*([0-9]+(?:\.[0-9]+)?)$/); if (m){ const field=m[1],op=m[2],val=+m[3]; const rv=+row[field]; if (Number.isNaN(rv)) return false; if (op==='>') return rv>val; if (op==='>=') return rv>=val; if (op==='<') return rv<val; if (op==='<=') return rv<=val; if (op==='==') return rv==val; if (op==='!=') return rv!=val; return false } return false }
+    function ruleMatch(rule,row){ const parts=String(rule||'').split('&&').map(x=> x.trim()).filter(Boolean); return parts.every(p=> clauseOk(p,row)) }
+    const pTasks = path.join(DATA_DIR,'tasks.json')
+    const jTasks = readJson(pTasks,{ tasks:[] })
+    let created=0
+    for (const r of rules){ if (ruleMatch(r.rule, eventRow)){ jTasks.tasks.push({ id:'t_'+Date.now()+Math.random().toString(36).slice(2,6), title:`${r.name} triggered`, dept: String(eventRow.dept||''), assignee:'', status:'open', sla_due: new Date(Date.now()+7*24*60*60*1000).toISOString().slice(0,10), created_at: Date.now(), closed_at: null, notes: JSON.stringify(eventRow) }); created++ } }
+    writeJson(pTasks, jTasks)
+    return ok(res,{ ok:true, created })
+  }
+  if (u.pathname==='/api/seasonality/apply' && req.method==='POST'){
+    const body = await parseBody(req)
+    const hospital = String(body.hospital||'').trim()
+    const metric = String(body.metric||'energy')
+    const annual = +(body.annual_value||0)
+    const cp = readJson(path.join(DATA_DIR,'campus_defs.json'),{ campuses:[] }).campuses
+    const c = cp.find(x=> String(x.name||'')===hospital)
+    const id = c? (x=> x.campus_id||x.name)(c) : ''
+    const sj = readJson(path.join(DATA_DIR,'seasonality.json'),{ seasonality:[] })
+    const prof = (sj.seasonality||[]).find(x=> x.campus_id===id && String(x.metric||'')===metric)
+    const weights = prof && Array.isArray(prof.monthly_weights)? prof.monthly_weights : []
+    if (!weights.length || annual<=0) return ok(res,{ campus_id:id||null, metric, monthly: [] })
+    const sumw = weights.reduce((a,x)=> a + (+x||0), 0) || 1
+    const monthly = weights.map(w=> +((annual * (w/sumw))).toFixed(3))
+    return ok(res,{ campus_id:id, metric, monthly })
+  }
+}
+  if (u.pathname.startsWith('/api/demo/csv/') && req.method==='GET'){
+    try{
+      const name = u.pathname.replace('/api/demo/csv/','')
+      const map = {
+        'hsp_records': 'hsp_records.csv',
+        'departments_energy': 'departments_energy.csv',
+        'departments_waste': 'departments_waste.csv',
+        'monthly_co2_trend': 'monthly_co2_trend.csv',
+        'taxonomy_izmir': 'taxonomy_izmir.csv'
+      }
+      const fn = map[name]
+      if (!fn) return notf(res)
+      const p = path.join(DATA_DIR,'hsp_csv',fn)
+      const txt = fs.readFileSync(p,'utf8')
+      res.writeHead(200,{ 'Content-Type':'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${fn}"`, 'Access-Control-Allow-Origin':'*' })
+      return res.end(txt)
+    }catch(_){ return notf(res) }
+  }
+
+  if (u.pathname==='/api/demo/import-all-csv' && req.method==='POST'){
+    try{
+      const dir = path.join(DATA_DIR,'hsp_csv')
+      function readCsv(fn){ const p = path.join(dir,fn); const txt = fs.readFileSync(p,'utf8'); const lines = txt.split(/\r?\n/).filter(x=> x.trim().length>0); const header = lines.shift().split(',').map(s=> s.trim()); return lines.map(line=>{ const cols = []; let cur=''; let inq=false; for (let i=0;i<line.length;i++){ const ch=line[i]; if (ch==='"'){ inq=!inq; continue } if (ch===',' && !inq){ cols.push(cur); cur=''; } else { cur+=ch } } cols.push(cur); const obj={}; for (let i=0;i<header.length;i++){ obj[header[i]] = (cols[i]||'').trim() } return obj }) }
+      const recs = readCsv('hsp_records.csv')
+      const dsetPath = path.join(DATA_DIR,'dataset.json')
+      let cur = readJson(dsetPath,{ rows:[] })
+      const key = (r)=> `${r.year}|${r.hospital}|${r.department}`
+      const seen = new Set(cur.rows.map(r=> `${r.year}|${r.hospital}|${r.dept}`))
+      for (const r of recs){ if (!seen.has(key(r))){ cur.rows.push({ year:+r.year, hospital:r.hospital, country:'TR', dept:r.department, energy:+r.energy_kwh||0, water:+r.water_m3||0, waste:+r.waste_kg||0, medw:+r.medical_waste_kg||0, co2:+r.co2e_ton||0, ren:+r.renewables_pct||0, rec:+r.recycling_pct||0, status:r.status||'' }) } }
+      writeJson(dsetPath, cur)
+      const taxCsv = readCsv('taxonomy_izmir.csv')
+      const campusPath = path.join(DATA_DIR,'campus_defs.json')
+      const campuses = readJson(campusPath,{ campuses:[] })
+      campuses.campuses = campuses.campuses||[]
+      for (const t of taxCsv){ const name = t.campus; if (!campuses.campuses.find(x=> x.name===name)){ campuses.campuses.push({ campus_id: name.toLowerCase().replace(/\s+/g,'_'), name, short_name:name, city:t.city, country:'TR', type:'private_chain', segment:'tertiary_care', beds_total:250, icu_beds:50, or_count:10, has_nicu:true, owner_group:'', grid_profile:'TR-Grid-2025', tags:[], scopes:{ scope1:true, scope2:true, scope3:true } }) } }
+      writeJson(campusPath, campuses)
+      const taxPath = path.join(DATA_DIR,'taxonomy_alignments.json')
+      const tax = readJson(taxPath,{ campuses:[] })
+      tax.campuses = tax.campuses||[]
+      for (const t of taxCsv){ const id = (campuses.campuses.find(x=> x.name===t.campus)||{}).campus_id || t.campus; const rec = { campus_id:id, eligible_revenue_mtl:+t.eligible_revenue_mtl||0, taxonomy_aligned_revenue_pct:+t.aligned_revenue_pct/100||0, taxonomy_aligned_capex_pct:+t.capex_aligned_pct/100||0, after_dnsh_pct:+t.after_dnsh_pct/100||0, esrs_gap_score:+t.esrs_score||0, dns_h_status: (+t.after_dnsh_pct>=10? 'amber':'green') }; const ex = tax.campuses.find(x=> x.campus_id===id); if (ex){ Object.assign(ex, rec) } else { tax.campuses.push(rec) } }
+      writeJson(taxPath, tax)
+      return ok(res,{ ok:true, rows: cur.rows.length, campuses: campuses.campuses.length, taxonomy: tax.campuses.length })
+    }catch(e){ return bad(res, e.message||e) }
+  }

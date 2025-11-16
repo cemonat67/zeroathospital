@@ -1,0 +1,82 @@
+{
+  "tasks": [
+    {
+      "id": "t_izmir_acibadem_icu_energy",
+      "title": "Optimize ICU energy use – Acibadem Izmir",
+      "hospital": "Acibadem Izmir Kent Hospital",
+      "dept": "ICU",
+      "assignee": "Energy Manager",
+      "status": "open",
+      "priority": "high",
+      "sla_due": "2025-12-31",
+      "created_at": 1763300000000,
+      "closed_at": null,
+      "notes": "Triggered by rule r_izmir_icu_energy; baseline > 280,000 kWh/year. Actions: BMS fine-tuning, night-setback review, ventilation schedule optimization."
+    },
+    {
+      "id": "t_izmir_acibadem_onc_medw",
+      "title": "Reduce oncology medical waste – Acibadem Izmir",
+      "hospital": "Acibadem Izmir Kent Hospital",
+      "dept": "Oncology",
+      "assignee": "Oncology Nurse Supervisor",
+      "status": "open",
+      "priority": "medium",
+      "sla_due": "2025-11-30",
+      "created_at": 1763300005000,
+      "closed_at": null,
+      "notes": "Triggered by rule r_izmir_onc_medwaste; run waste segregation training and review single-use item policy."
+    },
+    {
+      "id": "t_izmir_bazekol_or_night",
+      "title": "OR night-time base load check – Bazekol Cigli",
+      "hospital": "Bazekol Cigli Hospital",
+      "dept": "OR",
+      "assignee": "Facility",
+      "status": "open",
+      "priority": "medium",
+      "sla_due": "2025-11-20",
+      "created_at": 1763300010000,
+      "closed_at": null,
+      "notes": "Triggered by rule r_izmir_or_night_energy; investigate after-hours equipment left on, anesthesia machines and HVAC setpoints."
+    },
+    {
+      "id": "t_izmir_medicalpark_imaging",
+      "title": "Imaging suite energy audit – Medical Park Izmir",
+      "hospital": "Medical Park Izmir Hospital",
+      "dept": "Imaging",
+      "assignee": "Clinical Engineering",
+      "status": "open",
+      "priority": "low",
+      "sla_due": "2026-01-15",
+      "created_at": 1763300015000,
+      "closed_at": null,
+      "notes": "Triggered by rule r_izmir_imaging_energy; map idle times of MRI/CT and evaluate smart-standby modes."
+    },
+    {
+      "id": "t_izmir_tinaztepe_icu_water",
+      "title": "ICU water usage review – Tinaztepe Galen",
+      "hospital": "Tinaztepe Galen University Hospital",
+      "dept": "ICU",
+      "assignee": "Infection Control & Facility",
+      "status": "open",
+      "priority": "medium",
+      "sla_due": "2025-12-15",
+      "created_at": 1763300020000,
+      "closed_at": null,
+      "notes": "Triggered by rule r_izmir_icu_water; cross-check scrub routines, hand hygiene stations and leaks."
+    },
+    {
+      "id": "t_izmir_cross_campus_co2",
+      "title": "Cross-campus CO₂e reduction plan – Izmir pilot",
+      "hospital": "Izmir Multi-campus",
+      "dept": "All",
+      "assignee": "Green Deal Steering Committee",
+      "status": "open",
+      "priority": "high",
+      "sla_due": "2026-03-31",
+      "created_at": 1763300025000,
+      "closed_at": null,
+      "notes": "Generated from rule r_izmir_high_co2_intensity; prepare city-wide action plan for ICU, OR, Oncology and Imaging in 4 campuses."
+    }
+  ]
+}

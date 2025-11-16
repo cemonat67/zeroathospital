@@ -1,0 +1,17 @@
+id,year,hospital,campus,department,energy_kwh,water_m3,waste_kg,medical_waste_kg,co2e_ton,renewables_pct,recycling_pct,status
+101,2024,Memorial Ege,Izmir,Operating Theatre,1280000,5200,33000,8800,690,8,10,Action
+102,2024,Memorial Ege,Izmir,Radiology,920000,3800,21000,4200,460,12,15,OK
+103,2024,Memorial Ege,Izmir,Intensive Care,680000,2500,16000,3200,290,5,14,Monitor
+104,2024,Memorial Ege,Izmir,Laboratory,350000,1900,9000,900,140,18,22,OK
+105,2024,Memorial Ege,Izmir,Outpatient Clinics,290000,1700,7000,400,95,20,28,OK
+106,2024,Memorial Ege,Izmir,Sterilization (CSSD),410000,22600,12000,5200,210,6,12,Action
+107,2024,Memorial Ege,Izmir,Catering,520000,14200,18000,600,180,4,35,Monitor
+108,2023,Memorial Ege,Izmir,Radiology,890000,3700,19500,4000,435,12,14,OK
+109,2022,Memorial Ege,Izmir,Radiology,850000,3600,19000,3800,412,11,13,OK
+110,2024,Memorial Bahcelievler,Istanbul,Operating Theatre,1750000,6400,42000,11000,870,9,11,Action
+111,2024,Memorial Bahcelievler,Istanbul,Radiology,1130000,4100,26000,5200,540,10,16,Monitor
+112,2024,Memorial Bahcelievler,Istanbul,Intensive Care,820000,2800,19000,4100,340,6,15,Monitor
+113,2024,Memorial Bahcelievler,Istanbul,Sterilization (CSSD),590000,25500,15000,6800,260,7,13,Action
+114,2024,Acibadem Kent,Izmir,Operating Theatre,1460000,5600,36000,9500,760,11,12,Action
+115,2024,Acibadem Kent,Izmir,Radiology,980000,3900,23000,4700,495,14,18,OK
+116,2024,Acibadem Kent,Izmir,Intensive Care,720000,2650,17000,3600,305,8,16,Monitor

@@ -1,0 +1,40 @@
+{
+  "rules": [
+    {
+      "id": "r_izmir_icu_energy",
+      "name": "ICU – High energy (Izmir pilot)",
+      "rule": "dept==\"ICU\" && energy > 280000",
+      "enabled": true
+    },
+    {
+      "id": "r_izmir_icu_water",
+      "name": "ICU – High water (Izmir pilot)",
+      "rule": "dept==\"ICU\" && water > 6500",
+      "enabled": true
+    },
+    {
+      "id": "r_izmir_or_night_energy",
+      "name": "OR – Night-time energy anomaly",
+      "rule": "dept==\"OR\" && energy > 220000",
+      "enabled": true
+    },
+    {
+      "id": "r_izmir_onc_medwaste",
+      "name": "Oncology – Medical waste spike",
+      "rule": "dept==\"Oncology\" && medw > 2500",
+      "enabled": true
+    },
+    {
+      "id": "r_izmir_imaging_energy",
+      "name": "Imaging – Excessive imaging energy",
+      "rule": "dept==\"Imaging\" && energy > 180000",
+      "enabled": true
+    },
+    {
+      "id": "r_izmir_high_co2_intensity",
+      "name": "High CO2 intensity per campus",
+      "rule": "co2 > 420",
+      "enabled": true
+    }
+  ]
+}

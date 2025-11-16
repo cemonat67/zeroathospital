@@ -1,0 +1,112 @@
+{
+  "campuses": [
+    {
+      "campus_id": "acibadem_izmir_kent",
+      "name": "Acibadem Izmir Kent Hospital",
+      "short_name": "Acibadem Izmir",
+      "city": "Izmir",
+      "country": "TR",
+      "type": "private_chain",
+      "segment": "tertiary_care",
+      "beds_total": 272,
+      "icu_beds": 60,
+      "or_count": 12,
+      "has_nicu": true,
+      "owner_group": "Acibadem Healthcare Group",
+      "grid_profile": "TR-Aegean-Grid-2025",
+      "tags": [
+        "organ_transplant",
+        "oncology_center",
+        "robotic_surgery",
+        "gamma_knife"
+      ],
+      "scopes": {
+        "scope1": true,
+        "scope2": true,
+        "scope3": true
+      }
+    },
+    {
+      "campus_id": "bazekol_cigli",
+      "name": "Bazekol Cigli Hospital",
+      "short_name": "Bazekol Cigli",
+      "city": "Izmir",
+      "district": "Cigli",
+      "country": "TR",
+      "type": "private_chain",
+      "segment": "secondary_care",
+      "beds_total": 150,
+      "icu_beds": 35,
+      "or_count": 6,
+      "has_nicu": false,
+      "owner_group": "Bazekol Health Group",
+      "grid_profile": "TR-Aegean-Grid-2025",
+      "tags": [
+        "ent_legacy",
+        "robotic_surgery",
+        "cardio_center"
+      ],
+      "scopes": {
+        "scope1": true,
+        "scope2": true,
+        "scope3": true
+      }
+    },
+    {
+      "campus_id": "medicalpark_izmir",
+      "name": "Medical Park Izmir Hospital",
+      "short_name": "Medical Park Izmir",
+      "city": "Izmir",
+      "district": "Alsancak-Konak",
+      "country": "TR",
+      "type": "private_chain",
+      "segment": "tertiary_care",
+      "beds_total": 136,
+      "icu_beds": 30,
+      "or_count": 6,
+      "has_nicu": true,
+      "owner_group": "MLP Care",
+      "grid_profile": "TR-Aegean-Grid-2025",
+      "tags": [
+        "jci",
+        "oncology",
+        "ivf_center",
+        "health_tourism"
+      ],
+      "scopes": {
+        "scope1": true,
+        "scope2": true,
+        "scope3": true
+      }
+    },
+    {
+      "campus_id": "tinaztepe_galen",
+      "name": "Tinaztepe Galen University Hospital",
+      "short_name": "Tinaztepe Galen",
+      "city": "Izmir",
+      "district": "Bayrakli",
+      "country": "TR",
+      "type": "university_hospital",
+      "segment": "tertiary_care",
+      "beds_total": 100,
+      "icu_beds": 30,
+      "or_count": 6,
+      "has_nicu": true,
+      "nicu_beds": 31,
+      "owner_group": "Tinaztepe Health Group",
+      "grid_profile": "TR-Aegean-Grid-2025",
+      "tags": [
+        "oncology",
+        "nuclear_medicine",
+        "radiation_oncology",
+        "stroke_center_planned",
+        "teaching_hospital"
+      ],
+      "scopes": {
+        "scope1": true,
+        "scope2": true,
+        "scope3": true
+      }
+    }
+  ]
+}

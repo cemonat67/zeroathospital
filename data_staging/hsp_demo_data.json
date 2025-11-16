@@ -1,0 +1,65 @@
+{
+  "campuses": [
+    { "id": 1, "name": "Memorial Ege", "city": "Izmir", "beds": 255, "type": "Private" },
+    { "id": 2, "name": "Memorial Bahçelievler", "city": "Istanbul", "beds": 350, "type": "Private" },
+    { "id": 3, "name": "Ekol Hastanesi", "city": "Izmir", "beds": 210, "type": "Private" },
+    { "id": 4, "name": "Medicana Çamlıca", "city": "Istanbul", "beds": 420, "type": "Private" },
+    { "id": 5, "name": "Acıbadem Kent", "city": "Izmir", "beds": 305, "type": "Premium Private" }
+  ],
+  "energy_by_dept": [
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Ameliyathane", "kwh": 1280000 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Radyoloji", "kwh": 920000 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Yoğun Bakım", "kwh": 680000 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Laboratuvar", "kwh": 350000 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Poliklinikler", "kwh": 290000 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Sterilizasyon (CSSD)", "kwh": 410000 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Yemekhane", "kwh": 520000 },
+    { "year": 2024, "hospital": "Memorial Bahçelievler", "dept": "Ameliyathane", "kwh": 1750000 },
+    { "year": 2024, "hospital": "Memorial Bahçelievler", "dept": "Radyoloji", "kwh": 1130000 },
+    { "year": 2024, "hospital": "Acıbadem Kent", "dept": "Ameliyathane", "kwh": 1460000 }
+  ],
+  "water_by_dept": [
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Ameliyathane", "m3": 13200 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Yoğun Bakım", "m3": 8400 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Sterilizasyon", "m3": 22600 },
+    { "year": 2024, "hospital": "Memorial Ege", "dept": "Personel / Ofis", "m3": 9100 }
+  ],
+  "waste_by_category": [
+    { "year": 2024, "hospital": "Memorial Ege", "type": "Medical Waste", "kg": 168000 },
+    { "year": 2024, "hospital": "Memorial Ege", "type": "General Waste", "kg": 390000 },
+    { "year": 2024, "hospital": "Memorial Ege", "type": "Recyclables", "kg": 112000 },
+    { "year": 2024, "hospital": "Memorial Bahçelievler", "type": "Medical Waste", "kg": 228000 },
+    { "year": 2024, "hospital": "Memorial Bahçelievler", "type": "General Waste", "kg": 510000 }
+  ],
+  "annual_records": [
+    { "id": 101, "year": 2024, "hospital": "Memorial Ege", "dept": "Radyoloji", "energy_kwh": 920000, "water_m3": 3800, "waste_kg": 21000, "med_waste_kg": 4200, "co2e_t": 460, "ren_pct": 12, "rec_pct": 15, "status": "OK" },
+    { "id": 102, "year": 2024, "hospital": "Memorial Ege", "dept": "Ameliyathane", "energy_kwh": 1280000, "water_m3": 5200, "waste_kg": 33000, "med_waste_kg": 8800, "co2e_t": 690, "ren_pct": 8, "rec_pct": 10, "status": "Action" },
+    { "id": 103, "year": 2024, "hospital": "Memorial Ege", "dept": "Yoğun Bakım", "energy_kwh": 680000, "water_m3": 2500, "waste_kg": 16000, "med_waste_kg": 3200, "co2e_t": 290, "ren_pct": 5, "rec_pct": 14, "status": "Monitor" },
+    { "id": 104, "year": 2023, "hospital": "Memorial Ege", "dept": "Radyoloji", "energy_kwh": 890000, "water_m3": 3700, "waste_kg": 19500, "med_waste_kg": 4000, "co2e_t": 435, "ren_pct": 12, "rec_pct": 14, "status": "OK" },
+    { "id": 105, "year": 2022, "hospital": "Memorial Ege", "dept": "Radyoloji", "energy_kwh": 850000, "water_m3": 3600, "waste_kg": 19000, "med_waste_kg": 3800, "co2e_t": 412, "ren_pct": 11, "rec_pct": 13, "status": "OK" }
+  ],
+  "monthly_co2": [
+    { "hospital": "Memorial Ege", "year": 2024, "months": [182,175,188,178,195,204,216,210,198,205,192,186] }
+  ],
+  "taxonomy_align": [
+    { "campus": "Memorial Ege", "eligible_revenue_mtl": 540, "aligned_revenue_pct": 0.18, "aligned_capex_pct": 0.12, "after_dnsh_pct": 0.09, "esrs_gap_score": 62 },
+    { "campus": "Ekol Hastanesi", "eligible_revenue_mtl": 310, "aligned_revenue_pct": 0.11, "aligned_capex_pct": 0.08, "after_dnsh_pct": 0.06, "esrs_gap_score": 57 },
+    { "campus": "Acıbadem Kent", "eligible_revenue_mtl": 690, "aligned_revenue_pct": 0.22, "aligned_capex_pct": 0.15, "after_dnsh_pct": 0.12, "esrs_gap_score": 71 }
+  ],
+  "travel": [
+    { "scenario": "London → Return", "pax": 1, "distance_km": 3200, "factor_kg_per_pax_km": 0.115, "co2e_t": 0.368 },
+    { "scenario": "Riyadh → Izmir (3 pax)", "pax": 3, "distance_km": 5200, "factor_kg_per_pax_km": 0.115, "co2e_t": 1.79 },
+    { "scenario": "Berlin → Istanbul (premium)", "pax": 1, "distance_km": 2300, "factor_kg_per_pax_km": 0.115, "premium_multiplier": 2, "co2e_t": 0.92 }
+  ],
+  "alerts": {
+    "medical_waste": [
+      { "date": "2024-10-04", "hospital": "Memorial Ege", "dept": "Ameliyathane", "deviation": "+22%", "alert": "High Risk" },
+      { "date": "2024-11-12", "hospital": "Memorial Ege", "dept": "Yoğun Bakım", "deviation": "+13%", "alert": "Medium" },
+      { "date": "2024-08-14", "hospital": "Memorial Bahçelievler", "dept": "CSSD", "deviation": "+31%", "alert": "Critical" }
+    ],
+    "energy_spike": [
+      { "date": "2024-07-20", "dept": "HVAC", "note": "Gece tüketim +18%" },
+      { "date": "2024-08-11", "dept": "Radyoloji MRI", "note": "Standby tüketime anomali" }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "profiles": [
+    { "dept": "ICU", "dept_type": "clinical", "risk_level": "high", "scope_weights": { "s1": 0.5, "s2": 0.4, "s3": 0.1 }, "occupancy_sensitivity": 0.9, "baseline_energy": 300000, "baseline_water": 6000 },
+    { "dept": "OR", "dept_type": "clinical", "risk_level": "high", "scope_weights": { "s1": 0.4, "s2": 0.5, "s3": 0.1 }, "occupancy_sensitivity": 0.8, "baseline_energy": 260000, "baseline_water": 5100 },
+    { "dept": "Oncology", "dept_type": "clinical", "risk_level": "medium", "scope_weights": { "s1": 0.3, "s2": 0.5, "s3": 0.2 }, "occupancy_sensitivity": 0.7, "baseline_energy": 180000, "baseline_water": 2000 },
+    { "dept": "Imaging", "dept_type": "support", "risk_level": "medium", "scope_weights": { "s1": 0.2, "s2": 0.6, "s3": 0.2 }, "occupancy_sensitivity": 0.5, "baseline_energy": 60000, "baseline_water": 1200 }
+  ]
+}

@@ -1,0 +1,14 @@
+year,hospital,department,waste_type,kg
+2024,Memorial Ege,Hospital Total,Medical,168000
+2024,Memorial Ege,Hospital Total,General,390000
+2024,Memorial Ege,Hospital Total,Recyclables,112000
+2024,Memorial Bahcelievler,Hospital Total,Medical,228000
+2024,Memorial Bahcelievler,Hospital Total,General,510000
+2024,Memorial Bahcelievler,Hospital Total,Recyclables,138000
+2024,Acibadem Kent,Hospital Total,Medical,195000
+2024,Acibadem Kent,Hospital Total,General,445000
+2024,Acibadem Kent,Hospital Total,Recyclables,129000
+2024,Memorial Ege,Sterilization (CSSD),Medical,5200
+2024,Memorial Bahcelievler,Sterilization (CSSD),Medical,6800
+2024,Memorial Ege,Operating Theatre,Medical,8800
+2024,Memorial Bahcelievler,Operating Theatre,Medical,11000

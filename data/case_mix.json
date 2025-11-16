@@ -1,0 +1,8 @@
+{
+  "campuses": [
+    { "campus_id": "acibadem_izmir_kent", "year": 2025, "bed_occupancy_pct": 0.82, "admissions": 24500, "surgery_count": 6200, "icu_days": 14500, "imaging_exams": 82000, "outpatient_visits": 310000, "note": "Tertiary care, transplant & oncology ağırlıklı." },
+    { "campus_id": "bazekol_cigli", "year": 2025, "bed_occupancy_pct": 0.76, "admissions": 16500, "surgery_count": 4100, "icu_days": 9800, "imaging_exams": 54000, "outpatient_visits": 210000, "note": "Secondary care, kulak-burun-boğaz ve kardiyoloji güçlü." },
+    { "campus_id": "medicalpark_izmir", "year": 2025, "bed_occupancy_pct": 0.79, "admissions": 18800, "surgery_count": 5200, "icu_days": 11700, "imaging_exams": 64000, "outpatient_visits": 245000, "note": "MLP Care; oncology, IVF ve health tourism payı yüksek." },
+    { "campus_id": "tinaztepe_galen", "year": 2025, "bed_occupancy_pct": 0.74, "admissions": 13200, "surgery_count": 3600, "icu_days": 10200, "imaging_exams": 51000, "outpatient_visits": 190000, "note": "University hospital; eğitim/akademik vakalar, yüksek ICU/NICU." }
+  ]
+}

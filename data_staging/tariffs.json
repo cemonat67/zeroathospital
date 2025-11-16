@@ -1,0 +1,9 @@
+{
+  "tariffs": {
+    "electricity_tr_2025": { "scope": "electricity", "description": "Elektrik birim maliyeti (karma ticari tarife, vergiler dahil yaklaşık)", "currency": "TRY", "unit": "kWh", "price": 3.20, "cbam_exposed_share_pct": 0.35, "note": "Şebeke karışımında çelik, çimento ve ağır sanayi kaynaklı gömülü emisyon olduğundan CBAM dolaylı etkisi kabul edilir." },
+    "natural_gas_tr_2025": { "scope": "heat", "description": "Doğalgaz birim maliyeti (ısınma amaçlı, ortalama)", "currency": "TRY", "unit": "kWh_th", "price": 1.45, "cbam_exposed_share_pct": 0.10, "note": "CBAM doğrudan değil; ancak ithal gaz kaynaklı gömülü emisyonlar sebebiyle izlenir." },
+    "water_tr_2025": { "scope": "water", "description": "Şebeke suyu birim maliyeti", "currency": "TRY", "unit": "m3", "price": 35.00, "cbam_exposed_share_pct": 0.00, "note": "CBAM etkisi yok; ancak ESRS-E3 ve DNSH için kritik." },
+    "waste_general_tr_2025": { "scope": "waste", "description": "Genel atık bertaraf maliyeti", "currency": "TRY", "unit": "kg", "price": 1.80, "cbam_exposed_share_pct": 0.00, "note": "Depolama/bertaraf maliyeti; yerel düzenlemelere bağlı." },
+    "waste_medical_tr_2025": { "scope": "medical_waste", "description": "Tıbbi atık bertaraf maliyeti", "currency": "TRY", "unit": "kg", "price": 9.50, "cbam_exposed_share_pct": 0.00, "note": "Yakma/sterilizasyon süreçleri; DNSH ve ESRS-E5 için önemli." }
+  }
+}

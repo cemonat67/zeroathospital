@@ -57,13 +57,15 @@
     .select{background:#f8fafc; border:1px solid #e2e8f0; color:#111; padding:8px 10px; border-radius:8px; min-width:140px; font-weight:400; font-size:13px}
     .number,.input{background:#f8fafc; border:1px solid #e2e8f0; color:#111; padding:8px 10px; border-radius:8px; font-weight:400; font-size:13px}
 
-    main{display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; margin-top:16px}
+    main{display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; margin-top:16px; grid-auto-rows: 1fr; align-items:stretch}
     @media (max-width:1060px){ main{grid-template-columns:1fr} }
 
-    .grid{display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; margin-top:16px}
+    .grid{display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; margin-top:16px; grid-auto-rows: 1fr; align-items:stretch}
 
-    .card{background:var(--card); border:1px solid #101827; border-radius:16px; padding:16px; box-shadow:0 4px 18px rgba(0,0,0,.08)}
+    .card{background:var(--card); border:1px solid #101827; border-radius:16px; padding:16px; box-shadow:0 4px 18px rgba(0,0,0,.08); overflow:hidden; display:flex; flex-direction:column}
+    .card .fill{flex:1 1 auto}
     .card h3{margin:0 0 10px; font-size:13px; font-weight:300; color:#dbe2f1; letter-spacing:1.5px; text-transform:uppercase}
+    .card h3{color:#ffffff}
     .kpis{display:grid; grid-template-columns:repeat(6,1fr); gap:12px}
     @media (max-width:1060px){ .kpis{grid-template-columns: repeat(2,1fr)} }
     .kpi{background:linear-gradient(180deg,#0f1730,#0c1429); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:14px; transition: box-shadow .2s ease}
@@ -80,7 +82,9 @@
     @media (max-width:840px){ .two-col{grid-template-columns:1fr} }
 
     table{width:100%; border-collapse:separate; border-spacing:0 10px}
+    .card table{margin:0}
     thead th{font-size:12px; text-align:left; color:#1f2937; font-weight:500; padding:0 10px; letter-spacing:1px; text-transform:uppercase}
+    .card thead th{color:#ffffff}
     tbody tr{background:#f1f5f9; border:1px solid #e2e8f0}
     tbody td{padding:10px; font-size:13px; color:#0f172a}
     tbody tr{border-radius:10px}
@@ -152,7 +156,7 @@
   <div class="zero-color-bar"></div>
   <header class="app-header">
     <div class="header-content">
-      <img id="appLogo" src="zah_logo.PNG" alt="Zero@Hospital Logo" class="zero-production-logo">
+      <img id="appLogo" src="images/zah_logo.PNG" alt="Zero@Hospital Logo" class="zero-production-logo">
       <div class="title"><span class="brand-word">Zero<span class="title-at">@</span>Hospital</span> — Health Sustainability Passport</div>
     </div>
   </header>
@@ -170,10 +174,17 @@
       <div class="actions">
         <button id="backBtn" class="btn">← Back</button>
         <button id="resetBtn" class="btn">Reset Filters</button>
+        <button id="loadPilotBtn" class="btn">İzmir Pilot</button>
+        <button id="loadHspDemoBtn" class="btn">HSP Demo</button>
+        <button id="importCsvBtn" class="btn">Import HSP CSV</button>
+        <span id="pilotMsg" class="muted"></span>
         <button id="exportCsvBtn" class="btn">Export CSV</button>
         <button id="exportPdfBtn" class="btn">Export PDF</button>
         <button id="exportXlsxBtn" class="btn">Export Excel</button>
         <button id="zoomBtn" class="btn">%100 Zoom</button>
+        <span id="envBadge" class="pill ok" style="margin-left:8px">ENV</span>
+        <span id="apiMsg" class="pill bad" style="margin-left:8px; display:none">Local API required</span>
+        <a href="#taxonomy-section" class="btn">EU Taxonomy & Green Deal</a>
       </div>
       <div class="actions">
         <select id="yearSel" class="select"></select>
@@ -220,6 +231,9 @@
         <button id="tabTaxonomyBtn" class="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2l9 4-9 4-9-4 9-4zm0 10l9 4-9 4-9-4 9-4z"/></svg></span> Taxonomy</button>
         <button id="tabConnectorsBtn" class="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M5 4h4v6H5zm10 0h4v6h-4zM5 14h4v6H5zm10 0h4v6h-4z"/></svg></span> Connectors</button>
         <button id="tabRadarBtn" class="tab"><span class="tab-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5h4v2h-4V7zM7 11h10v2H7v-2zm2 4h6v2H9v-2z"/></svg></span> Radar</button>
+        <button id="tabCfoSaveBtn" class="tab">CFO Savings</button>
+        <button id="tabRiskMatrixBtn" class="tab">CEO Risk</button>
+        <button id="tabProjectsBtn" class="tab">Projects</button>
       </div>
     </div>
 
@@ -1276,6 +1290,28 @@
         </section>
       </div>
 
+      <!-- ======== PROJECTS VIEW ======== -->
+      <div id="projectsView" class="view">
+        <section class="light-card card">
+          <div class="head-row">
+            <h3>Green Deal Projects</h3>
+            <div class="muted">Taxonomy-eligible investments and expected CO₂e reduction</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div class="muted">EU Taxonomy Alignments</div>
+              <div style="margin-top:6px;display:flex;gap:8px"><button id="loadAlignmentsBtn" class="btn">Load Alignments</button></div>
+              <div id="alignmentsList" style="margin-top:8px"></div>
+            </div>
+            <div>
+              <div class="muted">Projects</div>
+              <div style="margin-top:6px;display:flex;gap:8px"><button id="loadProjectsBtn" class="btn">Load Projects</button></div>
+              <div id="projectsList" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
       <!-- ======== CONNECTORS VIEW ======== -->
       <div id="connectorsView" class="view">
         <section class="light-card card">
@@ -1582,7 +1618,46 @@
       </div>
     </div>
 
-    <div class="footer">© 2025 HSP Demo · Built on a DPP-inspired layout · <a class="link" href="#" id="downloadDemoJson">Download Sample Data (JSON)</a></div>
+    <section id="taxonomy-section" class="card" style="margin:16px">
+      <div class="head-row">
+        <h3>EU Taxonomy & Green Deal – İzmir Kampüsleri</h3>
+        <span id="taxonomy-env-tag" class="pill ok">ENV: ?</span>
+      </div>
+      <div style="margin-top:8px">
+        <div class="form-row" style="gap:8px">
+          <div>
+            <label class="muted">Campus / Hospital</label>
+            <select id="taxonomy-campus-select" class="select"></select>
+          </div>
+          <div style="display:flex; align-items:flex-end">
+            <button id="taxonomyRefreshBtn" class="btn">↻ Refresh Taxonomy Data</button>
+          </div>
+        </div>
+        <div class="kpis" id="taxonomy-kpis" style="margin-top:12px">
+          <div class="kpi"><div class="label">Eligible Revenue</div><div class="value" id="kpi-eligible-revenue">–</div><div class="delta">Taxonomy scope</div></div>
+          <div class="kpi"><div class="label">Aligned Revenue</div><div class="value" id="kpi-aligned-revenue">–</div><div class="delta">After DNSH & safeguards</div></div>
+          <div class="kpi"><div class="label">Aligned Capex</div><div class="value" id="kpi-aligned-capex">–</div><div class="delta">Green Deal projects</div></div>
+          <div class="kpi"><div class="label">ESRS Gap Score</div><div class="value" id="kpi-esrs-gap">–</div><div class="delta">0 = strong, 100 = weak</div></div>
+        </div>
+        <div class="two-col" style="margin-top:12px">
+          <div>
+            <div class="muted">DNSH & ESRS Notes</div>
+            <span id="taxonomy-dnsh-pill" class="pill">DNSH: –</span>
+            <ul id="taxonomy-dnsh-notes" style="margin-top:8px"></ul>
+          </div>
+          <div>
+            <div class="muted">CBAM Exposure (Indirect)</div>
+            <div style="margin-top:6px"><strong>Exposed Share:</strong> <span id="taxonomy-cbam-share">–</span></div>
+            <ul id="taxonomy-cbam-channels" style="margin-top:8px"></ul>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="muted">Next 12 Months – Priority Actions</div>
+          <ol id="taxonomy-priority-actions" style="margin-top:8px"></ol>
+        </div>
+      </div>
+    </section>
+    <div class="footer">© 2025 HSP Demo · Built on a DPP-inspired layout · <a class="link" href="#" id="downloadDemoJson">Download Sample Data (JSON)</a> · <a class="link" href="#" id="downloadHspCsvPack">Download HSP CSV Pack</a></div>
   </div>
   <button class="chat-toggle" id="chatToggle">Chat</button>
   <div class="chat-drawer" id="chatDrawer">
@@ -1668,6 +1743,7 @@
         btn_export_pdf: 'PDF Dışa Aktar',
         btn_export_xlsx: 'Excel Dışa Aktar',
         btn_zoom: '%100 Büyüt',
+        btn_load_pilot: 'İzmir Pilot Verisi',
         tab_main: '🏠 Ana',
         tab_live: '📈 Canlı',
         kpi_title: 'Temel Performans Göstergeleri',
@@ -1703,6 +1779,7 @@
         btn_export_pdf: 'Export PDF',
         btn_export_xlsx: 'Export Excel',
         btn_zoom: '%100 Zoom',
+        btn_load_pilot: 'Load Izmir Pilot',
         tab_main: '🏠 Main',
         tab_live: '📈 Live',
         kpi_title: 'Key Performance Indicators',
@@ -1736,7 +1813,7 @@
     const settings = { co2Threshold: 1000, factors: { energy_kwh_to_tco2e: 0.00042, water_m3_to_tco2e: 0.000344, waste_kg_to_tco2e: 0.0019, medw_kg_to_tco2e: 0.0045 } };
 
     const state = { data: [], charts: { energy:null, waste:null, co2:null }, liveChart:null, lang: 'en' };
-    const API_BASE = 'http://localhost:5174';
+    const API_BASE = window.location.origin;
     const LS_TARGETS = 'hsp_dept_targets_v1';
     const chat = { open:false, provider:'claude', model:'', messages:[], fileIds:[], fileTexts:[] }
 
@@ -1775,6 +1852,7 @@
       qs('#exportPdfBtn').textContent = t('btn_export_pdf');
       qs('#exportXlsxBtn').textContent = t('btn_export_xlsx');
       qs('#zoomBtn').textContent = t('btn_zoom');
+      const lp = qs('#loadPilotBtn'); if (lp) lp.textContent = t('btn_load_pilot');
       qs('#tabMainBtn').textContent = t('tab_main');
       qs('#tabLiveBtn').textContent = t('tab_live');
       qs('#lblKpiTitle').textContent = t('kpi_title');
@@ -1894,23 +1972,25 @@
 
       const totalCO2 = sum(rows, r=>r.co2);
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      const mVals = months.map((_,i)=> Math.max(0, totalCO2/12 * (0.9 + Math.sin(i/12*Math.PI*2)*0.1)));
+      const weights = (window.__seasonWeights && Array.isArray(window.__seasonWeights)) ? window.__seasonWeights : [1.08,1.06,1.02,0.98,0.95,0.94,0.93,0.95,0.98,1.02,1.06,1.10];
+      const wSum = weights.reduce((a,x)=>a+x,0);
+      const mVals = weights.map(w=> +(totalCO2 * (w/wSum)).toFixed(3));
 
       ['energy','waste','co2'].forEach(k=>{ if(state.charts[k]){ state.charts[k].destroy(); state.charts[k]=null; } });
 
       state.charts.energy = new Chart(qs('#energyChart'),{
         type:'bar', data:{ labels: deptLabels, datasets:[{ label:'kWh', data: deptVals }] },
-        options:{ plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{color:'#c8d3f0'}}, y:{ ticks:{color:'#c8d3f0'} } } }
+        options:{ plugins:{ legend:{display:false, labels:{ color:'#ffffff' } } }, scales:{ x:{ ticks:{color:'#ffffff'}}, y:{ ticks:{color:'#ffffff'} } } }
       });
 
       state.charts.waste = new Chart(qs('#wasteChart'),{
         type:'doughnut', data:{ labels:['General','Medical'], datasets:[{ data:[wasteGeneral, wasteMedical] }] },
-        options:{ plugins:{ legend:{ labels:{color:'#c8d3f0'} } } }
+        options:{ plugins:{ legend:{ labels:{color:'#ffffff'} } } }
       });
 
       state.charts.co2 = new Chart(qs('#co2Chart'),{
         type:'line', data:{ labels: months, datasets:[{ label:'tCO₂e', data:mVals, tension:.35, fill:false }] },
-        options:{ plugins:{ legend:{display:true, labels:{color:'#cbd5e1'} } }, scales:{ x:{ ticks:{color:'#c8d3f0'}}, y:{ ticks:{color:'#c8d3f0'} } } }
+        options:{ plugins:{ legend:{display:true, labels:{color:'#ffffff'} } }, scales:{ x:{ ticks:{color:'#ffffff'}}, y:{ ticks:{color:'#ffffff'} } } }
       });
     }
 
@@ -1973,6 +2053,25 @@
       if (!r.ok) throw new Error(data && data.error ? data.error : 'api_error');
       return data
     }
+    async function loadPilotDemo(){
+      try{
+        let env = 'prod'
+        try{ const h = await apiFetch('/api/health',{ method:'GET' }); env = (h.app&&h.app.env)||'prod' }catch(_){ }
+        await apiFetch('/api/pilot/init', { method:'POST' })
+        const j = await apiFetch('/api/dataset', { method:'GET' })
+        const rows = Array.isArray(j.rows)? j.rows : []
+        if (rows.length){ state.data = rows; saveData(); populateFilters(); applyAll(); const pm = qs('#pilotMsg'); if (pm) pm.textContent = `İzmir Pilot yüklendi ✔️ (${rows.length} rows · env: ${env} · dir: ${env==='staging'? 'data_staging':'data'})` }
+      }catch(e){ /* no-op */ }
+    }
+    async function loadHspDemo(){
+      try{
+        await apiFetch('/api/demo/hsp-load', { method:'POST' })
+        const j = await apiFetch('/api/dataset', { method:'GET' })
+        const rows = Array.isArray(j.rows)? j.rows : []
+        if (rows.length){ state.data = rows; saveData(); populateFilters(); applyAll(); const pm = qs('#pilotMsg'); if (pm) pm.textContent = `HSP Demo yüklendi ✔️ (${rows.length} rows)` }
+      }catch(e){ /* no-op */ }
+    }
+    async function updateEnvBadge(){ try{ const h = await apiFetch('/api/health',{ method:'GET' }); const env = (h.app&&h.app.env)||'prod'; const el = qs('#envBadge'); if (el){ el.textContent = `ENV: ${env}`; el.className = env==='staging'? 'pill warn' : 'pill ok' } const ap = qs('#apiMsg'); if (ap){ ap.style.display = 'none' } }catch(_){ const el = qs('#envBadge'); if (el){ el.textContent = 'ENV: unknown'; el.className = 'pill bad' } const ap = qs('#apiMsg'); if (ap){ ap.style.display = 'inline-flex' } } }
     async function doLogin(){
       const u = String(document.getElementById('loginUser').value||'').trim()
       const p = String(document.getElementById('loginPass').value||'').trim()
@@ -3029,12 +3128,18 @@
       qs('#exportPdfBtn').addEventListener('click', exportPDF);
       qs('#exportXlsxBtn').addEventListener('click', exportXLSX);
       qs('#zoomBtn').addEventListener('click', toggleZoom);
+      if (qs('#loadPilotBtn')) qs('#loadPilotBtn').addEventListener('click', ()=>{ loadPilotDemo().then(()=> seedLiveBase()) })
+      if (qs('#loadHspDemoBtn')) qs('#loadHspDemoBtn').addEventListener('click', ()=>{ loadHspDemo().then(()=> seedLiveBase()) })
+      if (qs('#importCsvBtn')) qs('#importCsvBtn').addEventListener('click', async ()=>{ try{ await apiFetch('/api/demo/import-all-csv',{ method:'POST' }); const j = await apiFetch('/api/dataset',{ method:'GET' }); const rows = Array.isArray(j.rows)? j.rows: []; if (rows.length){ state.data=rows; saveData(); populateFilters(); applyAll(); const pm = qs('#pilotMsg'); if (pm) pm.textContent = `CSV import ✔️ (${rows.length} rows)` } }catch(_){ } })
+      updateEnvBadge()
       qs('#backBtn').addEventListener('click', backToMain);
       if (qs('#loginBtn')) qs('#loginBtn').addEventListener('click', doLogin);
       if (qs('#logoutBtn')) qs('#logoutBtn').addEventListener('click', doLogout);
 
       ['yearSel','hospSel','deptSel'].forEach(id=> document.getElementById(id).addEventListener('change', ()=>{ applyAll(); seedLiveBase(); }));
+      document.getElementById('hospSel').addEventListener('change', loadSeasonality)
       qs('#downloadDemoJson').addEventListener('click', (e)=>{ e.preventDefault(); const blob = new Blob([JSON.stringify(state.data,null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='hsp_demo_data.json'; a.click(); URL.revokeObjectURL(url); });
+      qs('#downloadHspCsvPack').addEventListener('click', async (e)=>{ e.preventDefault(); const files = ['hsp_records','departments_energy','departments_waste','monthly_co2_trend','taxonomy_izmir']; for (const f of files){ try{ const r = await fetch(API_BASE+'/api/demo/csv/'+f); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href=u; a.download=f+'.csv'; a.click(); URL.revokeObjectURL(u) }catch(_){ } } });
       qs('#openAddModalBtn').addEventListener('click', window.openModal);
       qs('#addSampleBtn').addEventListener('click', ()=>{ addSample(); seedLiveBase(); });
 
@@ -3073,6 +3178,7 @@
       qs('#tabCampusBtn').addEventListener('click', ()=>{ showTab('Campus'); listCampuses(); });
       qs('#tabFinanceBtn').addEventListener('click', ()=>{ showTab('Finance'); });
       qs('#tabTaxonomyBtn').addEventListener('click', ()=>{ showTab('Taxonomy'); });
+      qs('#tabProjectsBtn').addEventListener('click', ()=>{ showTab('Projects'); loadTaxonomyAlignments(); loadGdProjects() })
       qs('#tabConnectorsBtn').addEventListener('click', ()=>{ showTab('Connectors'); });
       qs('#tabRadarBtn').addEventListener('click', ()=>{ showTab('Radar'); populateRadarCampus(); });
       qs('#tabSettingsBtn').addEventListener('click', ()=>{ showTab('Settings'); loadSettings(); });
@@ -3203,6 +3309,8 @@
       if (qs('#flmSortDir')) qs('#flmSortDir').addEventListener('change', drawFlmDeptChart);
       if (qs('#loadTopLeakageBtn')) qs('#loadTopLeakageBtn').addEventListener('click', loadTopLeakage);
       if (qs('#loadTaxonomyBtn')) qs('#loadTaxonomyBtn').addEventListener('click', loadTaxonomy);
+      if (qs('#loadAlignmentsBtn')) qs('#loadAlignmentsBtn').addEventListener('click', loadTaxonomyAlignments)
+      if (qs('#loadProjectsBtn')) qs('#loadProjectsBtn').addEventListener('click', loadGdProjects)
       if (qs('#loadConnectorsBtn')) qs('#loadConnectorsBtn').addEventListener('click', loadConnectors);
       if (qs('#loadRiskHeatmapBtn')) qs('#loadRiskHeatmapBtn').addEventListener('click', loadRiskHeatmap);
       if (qs('#loadDoctorPerfBtn')) qs('#loadDoctorPerfBtn').addEventListener('click', loadDoctorPerf);
@@ -3226,6 +3334,10 @@
       qs('#liveWindowInput').addEventListener('change', (e)=>{ live.windowSize = Math.max(5, Math.min(120, +e.target.value||15)); while(live.points.length > live.windowSize) live.points.shift(); updateLiveUI(); });
 
       seedLiveBase();
+      loadPilotDemo().then(()=>{ populateFilters(); applyAll(); }).catch(()=>{})
+      if (qs('#taxonomyRefreshBtn')) qs('#taxonomyRefreshBtn').addEventListener('click', ()=>{ loadTaxonomyData(); updateEnvTagForTaxonomy(); })
+      const tc = document.getElementById('taxonomy-campus-select'); if (tc) tc.addEventListener('change', renderTaxonomyView)
+      loadTaxonomyData(); updateEnvTagForTaxonomy();
 
       // ---------------- Self-tests ----------------
       const results = [];
@@ -3245,6 +3357,19 @@
 
     // expose saveNew for inline button
     window.saveNew = saveNew;
+    let TAXONOMY_DATA = null;
+    async function loadTaxonomyData(){ try{ const r = await apiFetch('/api/eu/taxonomy',{ method:'GET' }); TAXONOMY_DATA = Array.isArray(r.campuses)? r.campuses : []; populateTaxonomyCampusSelect(); renderTaxonomyView(); }catch(_){ } }
+    function populateTaxonomyCampusSelect(){ const sel = document.getElementById('taxonomy-campus-select'); if (!sel || !Array.isArray(TAXONOMY_DATA)) return; sel.innerHTML=''; TAXONOMY_DATA.forEach(c=>{ const opt = document.createElement('option'); opt.value = c.campus_id; opt.textContent = c.legal_entity || c.campus_id; sel.appendChild(opt); }); }
+    function setText(id, value){ const el = document.getElementById(id); if (el) el.textContent = (value===undefined||value===null)? '–' : value }
+    function pct(v){ if (v===undefined||v===null) return '–'; const n = Number(v); const val = n<=1? n*100 : n; return val.toFixed(0)+' %' }
+    async function updateEnvTagForTaxonomy(){ const tag = document.getElementById('taxonomy-env-tag'); if (!tag) return; try{ const h = await apiFetch('/api/health',{ method:'GET' }); const env = (h.app&&h.app.env)||'prod'; tag.textContent = 'ENV: '+env; tag.className = env==='staging'? 'pill warn' : 'pill ok'; }catch(_){ tag.textContent = 'ENV: n/a'; tag.className = 'pill bad'; } }
+    function renderTaxonomyView(){ if (!Array.isArray(TAXONOMY_DATA)||!TAXONOMY_DATA.length) return; const sel = document.getElementById('taxonomy-campus-select'); if (!sel) return; const id = sel.value || TAXONOMY_DATA[0].campus_id; const campus = TAXONOMY_DATA.find(c=> c.campus_id===id) || TAXONOMY_DATA[0]; setText('kpi-eligible-revenue', pct(campus.taxonomy_eligible_revenue_pct)); setText('kpi-aligned-revenue', pct(campus.taxonomy_aligned_revenue_pct)); setText('kpi-aligned-capex', pct(campus.taxonomy_aligned_capex_pct)); setText('kpi-esrs-gap', campus.esrs_gap_score!=null? String(campus.esrs_gap_score): '–'); const pill = document.getElementById('taxonomy-dnsh-pill'); if (pill){ const status = String(campus.dns_h_status||'n/a'); pill.textContent = 'DNSH: '+status.toUpperCase(); pill.className = 'pill '+(status==='green'?'ok':status==='amber'?'warn':status==='red'?'bad':''); } const dnshList = document.getElementById('taxonomy-dnsh-notes'); if (dnshList){ dnshList.innerHTML=''; (campus.dns_h_notes||[]).forEach(n=>{ const li=document.createElement('li'); li.textContent=n; dnshList.appendChild(li); }); } setText('taxonomy-cbam-share', pct(campus.cbam_exposed_share_pct)); const cbamList = document.getElementById('taxonomy-cbam-channels'); if (cbamList){ cbamList.innerHTML=''; (campus.cbam_channels||[]).forEach(ch=>{ const li=document.createElement('li'); li.textContent=ch; cbamList.appendChild(li); }); } const actions = document.getElementById('taxonomy-priority-actions'); if (actions){ actions.innerHTML=''; (campus.priority_actions_12m||[]).forEach(a=>{ const li=document.createElement('li'); li.textContent=a; actions.appendChild(li); }); } }
+
+    async function loadTaxonomyAlignments(){ try{ const r = await apiFetch('/api/eu/taxonomy/alignments',{ method:'GET' }); const arr = Array.isArray(r.campuses)? r.campuses: []; const box = qs('#alignmentsList'); if (box){ box.innerHTML = arr.map(a=> `<div class="kpi"><div class="label">${a.campus_id}</div><div class="value">Aligned Rev ${Math.round((a.taxonomy_aligned_revenue_pct||0)*100)}% · Capex ${Math.round((a.taxonomy_aligned_capex_pct||0)*100)}%</div><div class="delta">DNSH ${String(a.dns_h_status||'—')} · ESRS gap ${a.esrs_gap_score||'—'}</div></div>`).join('') } }catch(e){ const box = qs('#alignmentsList'); if (box) box.textContent = String(e.message||e) } }
+    async function loadGdProjects(){ try{ const r = await apiFetch('/api/gd/projects',{ method:'GET' }); const arr = Array.isArray(r.projects)? r.projects: []; const box = qs('#projectsList'); if (box){ box.innerHTML = arr.map(p=> `<div class="kpi"><div class="label">${p.campus_id}</div><div class="value">${p.name}</div><div class="delta">Capex ₺${p.capex_million_try}m · CO₂e ↓ ${p.expected_annual_co2e_reduction_t||p.expected_annual_mwh||'—'}</div></div>`).join('') } }catch(e){ const box = qs('#projectsList'); if (box) box.textContent = String(e.message||e) } }
+    async function loadCfoSavings(){ try{ const h = document.getElementById('hospSel').value||''; const r = await apiFetch('/api/finance/savings',{ method:'POST', body: JSON.stringify({ hospital: h }) }); const box = qs('#leakageBox'); if (box){ box.innerHTML = `<div class="kpi"><div class="label">Current Cost</div><div class="value">${r.currency} ${r.current_cost}</div></div><div class="kpi"><div class="label">Potential Savings</div><div class="value">${r.currency} ${r.potential_savings}</div></div>` } }catch(_){ } }
+    async function loadRiskMatrix(){ try{ const r = await apiFetch('/api/risk/matrix',{ method:'GET' }); const arr = Array.isArray(r.campuses)? r.campuses: []; const box = qs('#alertsTriggers'); if (box){ box.innerHTML = arr.map(c=> `<div class="kpi"><div class="label">${c.campus_id}</div><div class="value">JCI ${c.jci}</div><div class="delta">ESRS ${c.esrs} · DNSH ${c.dnsh}</div></div>`).join('') } }catch(_){ } }
+    async function loadSeasonality(){ try{ const h = document.getElementById('hospSel').value||''; const r = await apiFetch('/api/seasonality'+(h? ('?hospital='+encodeURIComponent(h)) : ''),{ method:'GET' }); window.__seasonWeights = (r && r.weights && Array.isArray(r.weights)) ? r.weights : null; renderCharts() }catch(_){ } }
 
   })();
   </script>

@@ -1,0 +1,12 @@
+{
+  "pathways": [
+    { "pathway_id": "onco_chemo", "name": "Oncology Chemo Protocol", "steps": [ { "dept": "Oncology", "base_co2": 0.15, "consumables_profile": [ { "item_code": "PPE_SET", "qty": 2 }, { "item_code": "IV_SET", "qty": 1 } ] }, { "dept": "Imaging", "base_co2": 0.04, "consumables_profile": [ { "item_code": "PPE_SET", "qty": 1 } ] } ] },
+    { "pathway_id": "icu_or_highrisk", "name": "ICU → OR High-risk Surgery", "steps": [ { "dept": "ICU", "base_co2": 0.20, "consumables_profile": [ { "item_code": "PPE_SET", "qty": 3 } ] }, { "dept": "OR", "base_co2": 0.35, "consumables_profile": [ { "item_code": "SURG_KIT", "qty": 1 }, { "item_code": "PPE_SET", "qty": 2 } ] }, { "dept": "Imaging", "base_co2": 0.05, "consumables_profile": [ { "item_code": "PPE_SET", "qty": 1 } ] } ] }
+  ],
+  "projects": [
+    { "project_id": "gd_solar_roof_acibadem", "campus_id": "acibadem_izmir_kent", "name": "Rooftop Solar PV Phase 1", "taxonomy_activity_code": "4.1", "taxonomy_activity_name": "Electricity generation from solar PV", "capex_million_try": 35, "expected_annual_mwh": 420, "expected_annual_co2e_reduction_t": 210, "classification": "mitigation", "status": "planned", "time_horizon_years": 15 },
+    { "project_id": "gd_chiller_retrofit_bazekol", "campus_id": "bazekol_cigli", "name": "High-efficiency chiller retrofit", "taxonomy_activity_code": "7.4", "taxonomy_activity_name": "Energy efficiency in buildings", "capex_million_try": 18, "expected_annual_mwh": 260, "expected_annual_co2e_reduction_t": 130, "classification": "mitigation", "status": "in_review", "time_horizon_years": 12 },
+    { "project_id": "gd_bms_optimization_medicalpark", "campus_id": "medicalpark_izmir", "name": "Smart BMS & OR ventilation optimization", "taxonomy_activity_code": "7.3", "taxonomy_activity_name": "Energy efficiency in heating and cooling", "capex_million_try": 9, "expected_annual_mwh": 140, "expected_annual_co2e_reduction_t": 70, "classification": "mitigation", "status": "approved", "time_horizon_years": 10 },
+    { "project_id": "gd_circular_consumables_tinaztepe", "campus_id": "tinaztepe_galen", "name": "Circular OR kits & reusable textiles", "taxonomy_activity_code": "3.1", "taxonomy_activity_name": "Circular economy, product design and use of recycled materials", "capex_million_try": 6, "expected_annual_co2e_reduction_t": 55, "classification": "mitigation", "status": "pilot", "time_horizon_years": 8 }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "items": [
+    { "item_code": "PPE_SET", "name": "PPE Set", "category": "ppe", "kg_co2e_per_unit": 0.8 },
+    { "item_code": "IV_SET", "name": "IV Set", "category": "iv", "kg_co2e_per_unit": 0.5 },
+    { "item_code": "SURG_KIT", "name": "Surgical Kit", "category": "kit", "kg_co2e_per_unit": 2.0 }
+  ]
+}
