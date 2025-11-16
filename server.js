@@ -2287,38 +2287,6 @@ const server = http.createServer(async (req,res)=>{
     return ok(res,{ co2_total:+co2.toFixed(3), per_patient, per_surgery, per_icu_day })
   }
 
-  if (u.pathname==='/api/seasonality'){
-    const p = path.join(DATA_DIR,'seasonality.json')
-    const j = readJson(p,{ profiles:[] })
-    if (req.method==='GET'){
-      const hospital = String(u.query.hospital||'').trim()
-      const cp = readJson(path.join(DATA_DIR,'campus_defs.json'),{ campuses:[] }).campuses
-      const c = cp.find(x=> String(x.name||'')===hospital)
-      const id = c? (c.campus_id||c.name) : ''
-      const prof = j.profiles.find(x=> x.campus_id===id)
-      return ok(res,{ campus_id:id||null, weights: prof? prof.weights: null })
-    }
-  }
-
-  if (u.pathname==='/api/facility/hvac-analyze' && req.method==='POST'){
-    const body = await parseBody(req)
-    const readings = readJson(path.join(DATA_DIR,'meter_readings.json'),{ readings:[] }).readings
-    const campus = String(body.campus||'').trim()
-    const hvac = readings.filter(r=> /hvac/i.test(r.meter) && (!campus || r.hospital===campus)).slice(-500)
-    const mean = hvac.length? hvac.reduce((a,x)=> a + (+x.value||0), 0)/hvac.length : 0
-    const night = hvac.filter(r=>{ const h=new Date(r.t).getHours(); return h>=0&&h<6 }).reduce((a,x)=> a+(+x.value||0),0)/(hvac.filter(r=>{ const h=new Date(r.t).getHours(); return h>=0&&h<6 }).length||1)
-    const flag = night > mean*0.8
-    return ok(res,{ campus, anomaly: flag, summary:{ mean:+mean.toFixed(2), night:+night.toFixed(2) } })
-  }
-  if (u.pathname==='/api/facility/or-idle' && req.method==='POST'){
-    const body = await parseBody(req)
-    const readings = readJson(path.join(DATA_DIR,'meter_readings.json'),{ readings:[] }).readings
-    const campus = String(body.campus||'').trim()
-    const orx = readings.filter(r=> /OR_|OR|operating/i.test(r.meter) && (!campus || r.hospital===campus)).slice(-500)
-    const idle = orx.filter(r=>{ const h=new Date(r.t).getHours(); return h>=22||h<6 }).reduce((a,x)=> a+(+x.value||0),0)/(orx.filter(r=>{ const h=new Date(r.t).getHours(); return h>=22||h<6 }).length||1)
-    const flag = idle > 1000
-    return ok(res,{ campus, anomaly: flag, summary:{ idle:+idle.toFixed(2) } })
-  }
   if (u.pathname==='/api/facility/autotask-from-event' && req.method==='POST'){
     if (usersExist() && !requireAuth(req)) return bad(res,'auth_required')
     const body = await parseBody(req)
@@ -2350,6 +2318,79 @@ const server = http.createServer(async (req,res)=>{
     return ok(res,{ campus_id:id, metric, monthly })
   }
 
+  if (u.pathname.startsWith('/api/demo/csv/') && req.method==='GET'){
+    try{
+      const name = u.pathname.replace('/api/demo/csv/','')
+      const map = {
+        'hsp_records': 'hsp_records.csv',
+        'departments_energy': 'departments_energy.csv',
+        'departments_waste': 'departments_waste.csv',
+        'monthly_co2_trend': 'monthly_co2_trend.csv',
+        'taxonomy_izmir': 'taxonomy_izmir.csv'
+      }
+      const fn = map[name]
+      if (!fn) return notf(res)
+      const p = path.join(DATA_DIR,'hsp_csv',fn)
+      const txt = fs.readFileSync(p,'utf8')
+      res.writeHead(200,{ 'Content-Type':'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${fn}"`, 'Access-Control-Allow-Origin':'*' })
+      return res.end(txt)
+    }catch(_){ return notf(res) }
+  }
+
+  if (u.pathname==='/api/demo/import-all-csv' && req.method==='POST'){
+    try{
+      const dir = path.join(DATA_DIR,'hsp_csv')
+      function readCsv(fn){ const p = path.join(dir,fn); const txt = fs.readFileSync(p,'utf8'); const lines = txt.split(/\r?\n/).filter(x=> x.trim().length>0); const header = lines.shift().split(',').map(s=> s.trim()); return lines.map(line=>{ const cols = []; let cur=''; let inq=false; for (let i=0;i<line.length;i++){ const ch=line[i]; if (ch==='"'){ inq=!inq; continue } if (ch===',' && !inq){ cols.push(cur); cur=''; } else { cur+=ch } } cols.push(cur); const obj={}; for (let i=0;i<header.length;i++){ obj[header[i]] = (cols[i]||'').trim() } return obj }) }
+      const recs = readCsv('hsp_records.csv')
+      const dsetPath = path.join(DATA_DIR,'dataset.json')
+      let cur = readJson(dsetPath,{ rows:[] })
+      const key = (r)=> `${r.year}|${r.hospital}|${r.department}`
+      const seen = new Set(cur.rows.map(r=> `${r.year}|${r.hospital}|${r.dept}`))
+      for (const r of recs){ if (!seen.has(key(r))){ cur.rows.push({ year:+r.year, hospital:r.hospital, country:'TR', dept:r.department, energy:+r.energy_kwh||0, water:+r.water_m3||0, waste:+r.waste_kg||0, medw:+r.medical_waste_kg||0, co2:+r.co2e_ton||0, ren:+r.renewables_pct||0, rec:+r.recycling_pct||0, status:r.status||'' }) } }
+      writeJson(dsetPath, cur)
+      const taxCsv = readCsv('taxonomy_izmir.csv')
+      const campusPath = path.join(DATA_DIR,'campus_defs.json')
+      const campuses = readJson(campusPath,{ campuses:[] })
+      campuses.campuses = campuses.campuses||[]
+      for (const t of taxCsv){ const name = t.campus; if (!campuses.campuses.find(x=> x.name===name)){ campuses.campuses.push({ campus_id: name.toLowerCase().replace(/\s+/g,'_'), name, short_name:name, city:t.city, country:'TR', type:'private_chain', segment:'tertiary_care', beds_total:250, icu_beds:50, or_count:10, has_nicu:true, owner_group:'', grid_profile:'TR-Grid-2025', tags:[], scopes:{ scope1:true, scope2:true, scope3:true } }) } }
+      writeJson(campusPath, campuses)
+      const taxPath = path.join(DATA_DIR,'taxonomy_alignments.json')
+      const tax = readJson(taxPath,{ campuses:[] })
+      tax.campuses = tax.campuses||[]
+      for (const t of taxCsv){ const id = (campuses.campuses.find(x=> x.name===t.campus)||{}).campus_id || t.campus; const rec = { campus_id:id, eligible_revenue_mtl:+t.eligible_revenue_mtl||0, taxonomy_aligned_revenue_pct:+t.aligned_revenue_pct/100||0, taxonomy_aligned_capex_pct:+t.capex_aligned_pct/100||0, after_dnsh_pct:+t.after_dnsh_pct/100||0, esrs_gap_score:+t.esrs_score||0, dns_h_status: (+t.after_dnsh_pct>=10? 'amber':'green') }; const ex = tax.campuses.find(x=> x.campus_id===id); if (ex){ Object.assign(ex, rec) } else { tax.campuses.push(rec) } }
+      writeJson(taxPath, tax)
+      return ok(res,{ ok:true, rows: cur.rows.length, campuses: campuses.campuses.length, taxonomy: tax.campuses.length })
+    }catch(e){ return bad(res, e.message||e) }
+  }
+
+  if (u.pathname==='/api/demo/import-csv-dir' && req.method==='POST'){
+    try{
+      const body = await parseBody(req)
+      const dir = String(body.dir||'').trim()
+      if (!dir) return bad(res,'dir_required')
+      function readCsvAbs(pth){ const txt = fs.readFileSync(pth,'utf8'); const lines = txt.split(/\r?\n/).filter(x=> x.trim().length>0); const header = lines.shift().split(',').map(s=> s.trim()); return lines.map(line=>{ const cols = []; let cur=''; let inq=false; for (let i=0;i<line.length;i++){ const ch=line[i]; if (ch==='"'){ inq=!inq; continue } if (ch===',' && !inq){ cols.push(cur); cur=''; } else { cur+=ch } } cols.push(cur); const obj={}; for (let i=0;i<header.length;i++){ obj[header[i]] = (cols[i]||'').trim() } return obj }) }
+      const names = Object.assign({ records:'hsp_records.csv', energy:'departments_energy.csv', waste:'departments_waste.csv', monthly:'monthly_co2_trend.csv', taxonomy:'taxonomy_izmir.csv' }, body.map||{})
+      const recs = readCsvAbs(path.resolve(dir, names.records))
+      const dsetPath = path.join(DATA_DIR,'dataset.json')
+      let cur = readJson(dsetPath,{ rows:[] })
+      const key = (r)=> `${r.year}|${r.hospital}|${r.department}`
+      const seen = new Set(cur.rows.map(r=> `${r.year}|${r.hospital}|${r.dept}`))
+      for (const r of recs){ if (!seen.has(key(r))){ cur.rows.push({ year:+r.year, hospital:r.hospital, country:'TR', dept:r.department, energy:+r.energy_kwh||0, water:+r.water_m3||0, waste:+r.waste_kg||0, medw:+r.medical_waste_kg||0, co2:+r.co2e_ton||0, ren:+r.renewables_pct||0, rec:+r.recycling_pct||0, status:r.status||'' }) } }
+      writeJson(dsetPath, cur)
+      const taxCsv = readCsvAbs(path.resolve(dir, names.taxonomy))
+      const campusPath = path.join(DATA_DIR,'campus_defs.json')
+      const campuses = readJson(campusPath,{ campuses:[] })
+      campuses.campuses = campuses.campuses||[]
+      for (const t of taxCsv){ const name = t.campus; if (!campuses.campuses.find(x=> x.name===name)){ campuses.campuses.push({ campus_id: name.toLowerCase().replace(/\s+/g,'_'), name, short_name:name, city:t.city, country:'TR', type:'private_chain', segment:'tertiary_care', beds_total:250, icu_beds:50, or_count:10, has_nicu:true, owner_group:'', grid_profile:'TR-Grid-2025', tags:[], scopes:{ scope1:true, scope2:true, scope3:true } }) } }
+      writeJson(campusPath, campuses)
+      const taxPath = path.join(DATA_DIR,'taxonomy_alignments.json')
+      const tax = readJson(taxPath,{ campuses:[] })
+      tax.campuses = tax.campuses||[]
+      for (const t of taxCsv){ const id = (campuses.campuses.find(x=> x.name===t.campus)||{}).campus_id || t.campus; const rec = { campus_id:id, eligible_revenue_mtl:+t.eligible_revenue_mtl||0, taxonomy_aligned_revenue_pct:+t.aligned_revenue_pct/100||0, taxonomy_aligned_capex_pct:+t.capex_aligned_pct/100||0, after_dnsh_pct:+t.after_dnsh_pct/100||0, esrs_gap_score:+t.esrs_score||0, dns_h_status: (+t.after_dnsh_pct>=10? 'amber':'green') }; const ex = tax.campuses.find(x=> x.campus_id===id); if (ex){ Object.assign(ex, rec) } else { tax.campuses.push(rec) } }
+      writeJson(taxPath, tax)
+      return ok(res,{ ok:true, rows: cur.rows.length, campuses: campuses.campuses.length, taxonomy: tax.campuses.length })
+    }catch(e){ return bad(res, e.message||e) }
+  }
 
   return notf(res)
 })
@@ -2604,78 +2645,4 @@ async function UNUSED_BLOCK(){
     const flag = idle > 1000
     return ok(res,{ campus, anomaly: flag, summary:{ idle:+idle.toFixed(2) } })
   }
-  if (u.pathname==='/api/facility/autotask-from-event' && req.method==='POST'){
-    if (usersExist() && !requireAuth(req)) return bad(res,'auth_required')
-    const body = await parseBody(req)
-    const eventRow = body.row||{}
-    const rules = readJson(path.join(DATA_DIR,'alert_rules.json'),{ rules:[] }).rules
-    function clauseOk(clause, row){ clause=String(clause||'').trim(); let m; m=clause.match(/^dept=="([^"]+)"$/); if (m) return String(row.dept||'')===m[1]; m=clause.match(/^hospital=="([^"]+)"$/); if (m) return String(row.hospital||'')===m[1]; m=clause.match(/^(year|energy|water|waste|medw|co2|ren|rec)\s*(>=|<=|==|!=|>|<)\s*([0-9]+(?:\.[0-9]+)?)$/); if (m){ const field=m[1],op=m[2],val=+m[3]; const rv=+row[field]; if (Number.isNaN(rv)) return false; if (op==='>') return rv>val; if (op==='>=') return rv>=val; if (op==='<') return rv<val; if (op==='<=') return rv<=val; if (op==='==') return rv==val; if (op==='!=') return rv!=val; return false } return false }
-    function ruleMatch(rule,row){ const parts=String(rule||'').split('&&').map(x=> x.trim()).filter(Boolean); return parts.every(p=> clauseOk(p,row)) }
-    const pTasks = path.join(DATA_DIR,'tasks.json')
-    const jTasks = readJson(pTasks,{ tasks:[] })
-    let created=0
-    for (const r of rules){ if (ruleMatch(r.rule, eventRow)){ jTasks.tasks.push({ id:'t_'+Date.now()+Math.random().toString(36).slice(2,6), title:`${r.name} triggered`, dept: String(eventRow.dept||''), assignee:'', status:'open', sla_due: new Date(Date.now()+7*24*60*60*1000).toISOString().slice(0,10), created_at: Date.now(), closed_at: null, notes: JSON.stringify(eventRow) }); created++ } }
-    writeJson(pTasks, jTasks)
-    return ok(res,{ ok:true, created })
-  }
-  if (u.pathname==='/api/seasonality/apply' && req.method==='POST'){
-    const body = await parseBody(req)
-    const hospital = String(body.hospital||'').trim()
-    const metric = String(body.metric||'energy')
-    const annual = +(body.annual_value||0)
-    const cp = readJson(path.join(DATA_DIR,'campus_defs.json'),{ campuses:[] }).campuses
-    const c = cp.find(x=> String(x.name||'')===hospital)
-    const id = c? (x=> x.campus_id||x.name)(c) : ''
-    const sj = readJson(path.join(DATA_DIR,'seasonality.json'),{ seasonality:[] })
-    const prof = (sj.seasonality||[]).find(x=> x.campus_id===id && String(x.metric||'')===metric)
-    const weights = prof && Array.isArray(prof.monthly_weights)? prof.monthly_weights : []
-    if (!weights.length || annual<=0) return ok(res,{ campus_id:id||null, metric, monthly: [] })
-    const sumw = weights.reduce((a,x)=> a + (+x||0), 0) || 1
-    const monthly = weights.map(w=> +((annual * (w/sumw))).toFixed(3))
-    return ok(res,{ campus_id:id, metric, monthly })
-  }
 }
-  if (u.pathname.startsWith('/api/demo/csv/') && req.method==='GET'){
-    try{
-      const name = u.pathname.replace('/api/demo/csv/','')
-      const map = {
-        'hsp_records': 'hsp_records.csv',
-        'departments_energy': 'departments_energy.csv',
-        'departments_waste': 'departments_waste.csv',
-        'monthly_co2_trend': 'monthly_co2_trend.csv',
-        'taxonomy_izmir': 'taxonomy_izmir.csv'
-      }
-      const fn = map[name]
-      if (!fn) return notf(res)
-      const p = path.join(DATA_DIR,'hsp_csv',fn)
-      const txt = fs.readFileSync(p,'utf8')
-      res.writeHead(200,{ 'Content-Type':'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${fn}"`, 'Access-Control-Allow-Origin':'*' })
-      return res.end(txt)
-    }catch(_){ return notf(res) }
-  }
-
-  if (u.pathname==='/api/demo/import-all-csv' && req.method==='POST'){
-    try{
-      const dir = path.join(DATA_DIR,'hsp_csv')
-      function readCsv(fn){ const p = path.join(dir,fn); const txt = fs.readFileSync(p,'utf8'); const lines = txt.split(/\r?\n/).filter(x=> x.trim().length>0); const header = lines.shift().split(',').map(s=> s.trim()); return lines.map(line=>{ const cols = []; let cur=''; let inq=false; for (let i=0;i<line.length;i++){ const ch=line[i]; if (ch==='"'){ inq=!inq; continue } if (ch===',' && !inq){ cols.push(cur); cur=''; } else { cur+=ch } } cols.push(cur); const obj={}; for (let i=0;i<header.length;i++){ obj[header[i]] = (cols[i]||'').trim() } return obj }) }
-      const recs = readCsv('hsp_records.csv')
-      const dsetPath = path.join(DATA_DIR,'dataset.json')
-      let cur = readJson(dsetPath,{ rows:[] })
-      const key = (r)=> `${r.year}|${r.hospital}|${r.department}`
-      const seen = new Set(cur.rows.map(r=> `${r.year}|${r.hospital}|${r.dept}`))
-      for (const r of recs){ if (!seen.has(key(r))){ cur.rows.push({ year:+r.year, hospital:r.hospital, country:'TR', dept:r.department, energy:+r.energy_kwh||0, water:+r.water_m3||0, waste:+r.waste_kg||0, medw:+r.medical_waste_kg||0, co2:+r.co2e_ton||0, ren:+r.renewables_pct||0, rec:+r.recycling_pct||0, status:r.status||'' }) } }
-      writeJson(dsetPath, cur)
-      const taxCsv = readCsv('taxonomy_izmir.csv')
-      const campusPath = path.join(DATA_DIR,'campus_defs.json')
-      const campuses = readJson(campusPath,{ campuses:[] })
-      campuses.campuses = campuses.campuses||[]
-      for (const t of taxCsv){ const name = t.campus; if (!campuses.campuses.find(x=> x.name===name)){ campuses.campuses.push({ campus_id: name.toLowerCase().replace(/\s+/g,'_'), name, short_name:name, city:t.city, country:'TR', type:'private_chain', segment:'tertiary_care', beds_total:250, icu_beds:50, or_count:10, has_nicu:true, owner_group:'', grid_profile:'TR-Grid-2025', tags:[], scopes:{ scope1:true, scope2:true, scope3:true } }) } }
-      writeJson(campusPath, campuses)
-      const taxPath = path.join(DATA_DIR,'taxonomy_alignments.json')
-      const tax = readJson(taxPath,{ campuses:[] })
-      tax.campuses = tax.campuses||[]
-      for (const t of taxCsv){ const id = (campuses.campuses.find(x=> x.name===t.campus)||{}).campus_id || t.campus; const rec = { campus_id:id, eligible_revenue_mtl:+t.eligible_revenue_mtl||0, taxonomy_aligned_revenue_pct:+t.aligned_revenue_pct/100||0, taxonomy_aligned_capex_pct:+t.capex_aligned_pct/100||0, after_dnsh_pct:+t.after_dnsh_pct/100||0, esrs_gap_score:+t.esrs_score||0, dns_h_status: (+t.after_dnsh_pct>=10? 'amber':'green') }; const ex = tax.campuses.find(x=> x.campus_id===id); if (ex){ Object.assign(ex, rec) } else { tax.campuses.push(rec) } }
-      writeJson(taxPath, tax)
-      return ok(res,{ ok:true, rows: cur.rows.length, campuses: campuses.campuses.length, taxonomy: tax.campuses.length })
-    }catch(e){ return bad(res, e.message||e) }
-  }

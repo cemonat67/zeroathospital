@@ -1657,7 +1657,7 @@
         </div>
       </div>
     </section>
-    <div class="footer">© 2025 HSP Demo · Built on a DPP-inspired layout · <a class="link" href="#" id="downloadDemoJson">Download Sample Data (JSON)</a> · <a class="link" href="#" id="downloadHspCsvPack">Download HSP CSV Pack</a></div>
+    <div class="footer">© 2025 HSP Demo · Built on a DPP-inspired layout · <a class="link" href="#" id="downloadDemoJson">Download Sample Data (JSON)</a> · <a class="link" href="#" id="downloadHspCsvPack">Download HSP CSV Pack</a> · <a class="link" href="#" id="downloadHspSql">Download Supabase SQL</a></div>
   </div>
   <button class="chat-toggle" id="chatToggle">Chat</button>
   <div class="chat-drawer" id="chatDrawer">
@@ -3140,6 +3140,7 @@
       document.getElementById('hospSel').addEventListener('change', loadSeasonality)
       qs('#downloadDemoJson').addEventListener('click', (e)=>{ e.preventDefault(); const blob = new Blob([JSON.stringify(state.data,null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='hsp_demo_data.json'; a.click(); URL.revokeObjectURL(url); });
       qs('#downloadHspCsvPack').addEventListener('click', async (e)=>{ e.preventDefault(); const files = ['hsp_records','departments_energy','departments_waste','monthly_co2_trend','taxonomy_izmir']; for (const f of files){ try{ const r = await fetch(API_BASE+'/api/demo/csv/'+f); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href=u; a.download=f+'.csv'; a.click(); URL.revokeObjectURL(u) }catch(_){ } } });
+      qs('#downloadHspSql').addEventListener('click', async (e)=>{ e.preventDefault(); try{ const r = await fetch(API_BASE+'/api/demo/sql/hsp'); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href=u; a.download='hsp_tables.sql'; a.click(); URL.revokeObjectURL(u) }catch(_){ } });
       qs('#openAddModalBtn').addEventListener('click', window.openModal);
       qs('#addSampleBtn').addEventListener('click', ()=>{ addSample(); seedLiveBase(); });
 
