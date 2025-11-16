@@ -1,0 +1,16 @@
+{
+  "rows": [
+    {
+      "year": 2025,
+      "hospital": "Alveo Medical Center",
+      "dept": "ICU",
+      "energy": 295000,
+      "water": 6800,
+      "waste": 5200,
+      "medw": 1500,
+      "co2": 400,
+      "ren": 34,
+      "rec": 41
+    }
+  ]
+}

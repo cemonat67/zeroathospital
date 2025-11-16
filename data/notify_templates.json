@@ -1,0 +1,9 @@
+{
+  "templates": [
+    {
+      "name": "esc_default",
+      "subject": "Escalation {{dept}}: {{title}}",
+      "body": "Task {{title}} in {{dept}} overdue. SLA {{sla_due}}. Assignee {{assignee}}."
+    }
+  ]
+}

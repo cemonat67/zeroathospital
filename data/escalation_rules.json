@@ -1,0 +1,12 @@
+{
+  "rules": [
+    {
+      "name": "ICU Esc",
+      "dept": "ICU",
+      "overdue_days": 0,
+      "group": "admins",
+      "template": "esc_default",
+      "assignee": "QA"
+    }
+  ]
+}

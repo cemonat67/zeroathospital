@@ -1,0 +1,49 @@
+{
+  "tasks": [
+    {
+      "id": "t_1763277541043",
+      "title": "Reduce OR energy",
+      "dept": "OR",
+      "assignee": "Facility",
+      "status": "done",
+      "sla_due": "2025-12-31",
+      "created_at": 1763277541043,
+      "closed_at": 1763277551179,
+      "notes": ""
+    },
+    {
+      "id": "t_1763288816393ebbt",
+      "title": "AuthOK triggered",
+      "dept": "ICU",
+      "assignee": "",
+      "status": "open",
+      "sla_due": "2025-11-19",
+      "created_at": 1763288816393,
+      "closed_at": null,
+      "notes": "Rule: water > 1000; Row: {\"dept\":\"ICU\",\"water\":6800}"
+    },
+    {
+      "id": "t_1763288816393ne8q",
+      "title": "ICU Water triggered",
+      "dept": "ICU",
+      "assignee": "",
+      "status": "open",
+      "sla_due": "2025-11-19",
+      "created_at": 1763288816393,
+      "closed_at": null,
+      "notes": "Rule: dept==\"ICU\" && water > 6500; Row: {\"dept\":\"ICU\",\"water\":6800}"
+    },
+    {
+      "id": "t_1763290134718",
+      "title": "Test ICU overdue",
+      "dept": "ICU",
+      "assignee": "QA",
+      "status": "escalated",
+      "sla_due": "2025-11-15",
+      "created_at": 1763290134718,
+      "closed_at": null,
+      "notes": "",
+      "escalation_count": 1
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "profiles": [
+    {
+      "hospital": "Alveo Medical Center",
+      "dept": "OR",
+      "factors": {
+        "energy_kwh_to_tco2e": 0.0005
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "sent": [
+    {
+      "id": "em_1763290134979tj00",
+      "to": "admin@example.com",
+      "subject": "Escalation ICU: Test ICU overdue",
+      "body": "Task Test ICU overdue in ICU overdue. SLA 2025-11-15. Assignee QA.",
+      "attachments": [],
+      "created_at": 1763290134979,
+      "sent_at": 1763290135353
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "sessions": {
+    "k_1763287243669_a7b9b4748d2d49d9": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763330443669
+    },
+    "k_1763287250126_7e813524acfaa14d": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763330450127
+    },
+    "k_1763287285643_72c6a41b981081d6": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763330485643
+    },
+    "k_1763287381573_5dca85c9a0afecce": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763330581573
+    },
+    "k_1763287405366_c994beb921b17025": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763330605366
+    },
+    "k_1763288507301_e84c1fe319ba5f12": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763331707301
+    },
+    "k_1763288524782_80670df3b3aa5586": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763331724782
+    },
+    "k_1763288797863_639c6b1a9f0eeb84": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763331997863
+    },
+    "k_1763288816266_f4f27cd22c195f5c": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763332016267
+    },
+    "k_1763288961319_2223077d463c9b8a": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763332161319
+    },
+    "k_1763288986436_34928ad8a2d63899": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763332186436
+    },
+    "k_1763289906007_827253601086f397": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763333106007
+    },
+    "k_1763289932669_b80acc321fad30ef": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763333132669
+    },
+    "k_1763290077519_4256c87bd91b059d": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763333277519
+    },
+    "k_1763290120234_1fcf7231de2bf6f3": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763333320235
+    },
+    "k_1763290134368_e20eac200066b8c6": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763333334368
+    },
+    "k_1763295307511_37e3c9843484fe6a": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763338507511
+    },
+    "k_1763295387565_a24fadeeada5cf00": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763338587566
+    },
+    "k_1763295562469_093c50fb53d9cd95": {
+      "user": "admin",
+      "role": "admin",
+      "exp": 1763338762470
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "profiles": [
+    {
+      "name": "Appendectomy",
+      "dept": "General Surgery",
+      "factors": {
+        "energy_kwh": 35,
+        "sterilization_factor_kgco2e_per_cycle": 0.6,
+        "staff_factor_kgco2e_per_hour": 0.008,
+        "consumables": [
+          {
+            "name": "Suturing kit",
+            "kgco2e": 0.12
+          },
+          {
+            "name": "Drape",
+            "kgco2e": 0.08
+          }
+        ]
+      }
+    }
+  ]
+}

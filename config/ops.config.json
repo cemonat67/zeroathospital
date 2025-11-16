@@ -1,0 +1,14 @@
+{
+  "envs": {
+    "prod": {
+      "port": 5174,
+      "dataDir": "data",
+      "baseUrl": "http://localhost:5174"
+    },
+    "staging": {
+      "port": 6174,
+      "dataDir": "data_staging",
+      "baseUrl": "http://localhost:6174"
+    }
+  }
+}

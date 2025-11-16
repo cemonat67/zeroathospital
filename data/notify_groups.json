@@ -1,0 +1,10 @@
+{
+  "groups": [
+    {
+      "name": "admins",
+      "emails": [
+        "admin@example.com"
+      ]
+    }
+  ]
+}

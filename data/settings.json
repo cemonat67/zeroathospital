@@ -1,0 +1,8 @@
+{
+  "factors": {},
+  "co2Threshold": 800,
+  "scope_weights": {
+    "s1": 0.3,
+    "s2": 0.55
+  }
+}

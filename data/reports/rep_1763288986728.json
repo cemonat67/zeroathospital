@@ -1,0 +1,27 @@
+{
+  "id": "rep_1763288986728",
+  "template": "csrd",
+  "created_at": 1763288986728,
+  "summary": {
+    "co2": 400,
+    "energy": 295000,
+    "water": 6800,
+    "waste": 5200,
+    "medw": 1500,
+    "ren": 34,
+    "rec": 41,
+    "scope": {
+      "s1": 120,
+      "s2": 220.00000000000003,
+      "s3": 59.99999999999997
+    }
+  },
+  "settings": {
+    "factors": {},
+    "co2Threshold": 800,
+    "scope_weights": {
+      "s1": 0.3,
+      "s2": 0.55
+    }
+  }
+}

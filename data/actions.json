@@ -1,0 +1,11 @@
+{
+  "logs": [
+    {
+      "action": "Recycle bins audit",
+      "meta": {
+        "dept": "ICU"
+      },
+      "t": 1763276948228
+    }
+  ]
+}

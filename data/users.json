@@ -1,0 +1,10 @@
+{
+  "users": [
+    {
+      "u": "admin",
+      "salt": "0ffe0fa29e2219cb8239a5a691f3d514",
+      "hash": "e4ef443bc1824dba9356a1a4ec5ff4180f6a1818d12a12866ee2d9aa2272f53c",
+      "role": "admin"
+    }
+  ]
+}
