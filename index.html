@@ -184,7 +184,7 @@
         <button id="zoomBtn" class="btn">%100 Zoom</button>
         <span id="envBadge" class="pill ok" style="margin-left:8px">ENV</span>
         <span id="apiMsg" class="pill bad" style="margin-left:8px; display:none">Local API required</span>
-        <a href="#taxonomy-section" class="btn">EU Taxonomy & Green Deal</a>
+        <a href="#taxonomy-section" id="linkTaxonomy" class="btn">EU Taxonomy & Green Deal</a>
       </div>
       <div class="actions">
         <select id="yearSel" class="select"></select>
@@ -1768,6 +1768,30 @@
         stop: 'Durdur',
         add_sample: 'Örnek Kayıt Ekle',
         new_entry: '+ Yeni Giriş',
+        tab_scopes: '📊 Kapsamlar',
+        tab_alerts: '🔔 Uyarılar',
+        tab_actions: '✅ Aksiyonlar',
+        tab_depts: '🏥 Departmanlar',
+        tab_compliance: '📋 Uyum',
+        tab_data: '🗄️ Veri',
+        tab_sessions: '🧰 Oturumlar',
+        tab_deptdash: '📊 Departman Paneli',
+        tab_settings: '⚙️ Ayarlar',
+        tab_ops: '🛠️ Operasyon',
+        tab_clinical: '🧪 Klinik',
+        tab_projects: '🟢 Projeler',
+        tab_cfo_savings: '💶 CFO Tasarruf',
+        tab_ceo_risk: '🧭 CEO Risk',
+        link_taxonomy: 'EU Taxonomy & Green Deal',
+        btn_login: 'Giriş',
+        btn_logout: 'Çıkış',
+        placeholder_user: 'Kullanıcı',
+        placeholder_password: 'Şifre',
+        btn_hsp_demo: 'HSP Demo',
+        btn_import_csv: 'HSP CSV İçe Aktar',
+        option_all_years: 'Tüm Yıllar',
+        option_all_hospitals: 'Tüm Hastaneler',
+        option_all_depts: 'Tüm Departmanlar'
       },
       en: {
         hero_title: 'Zero@Hospital — Health Sustainability Passport',
@@ -1804,6 +1828,30 @@
         stop: 'Stop',
         add_sample: 'Add Sample Record',
         new_entry: '+ New Entry',
+        tab_scopes: '📊 Scopes',
+        tab_alerts: '🔔 Alerts',
+        tab_actions: '✅ Actions',
+        tab_depts: '🏥 Departments',
+        tab_compliance: '📋 Compliance',
+        tab_data: '🗄️ Data',
+        tab_sessions: '🧰 Sessions',
+        tab_deptdash: '📊 Dept Dashboard',
+        tab_settings: '⚙️ Settings',
+        tab_ops: '🛠️ Ops',
+        tab_clinical: '🧪 Clinical',
+        tab_projects: '🟢 Projects',
+        tab_cfo_savings: '💶 CFO Savings',
+        tab_ceo_risk: '🧭 CEO Risk',
+        link_taxonomy: 'EU Taxonomy & Green Deal',
+        btn_login: 'Login',
+        btn_logout: 'Logout',
+        placeholder_user: 'User',
+        placeholder_password: 'Password',
+        btn_hsp_demo: 'HSP Demo',
+        btn_import_csv: 'Import HSP CSV',
+        option_all_years: 'All Years',
+        option_all_hospitals: 'All Hospitals',
+        option_all_depts: 'All Departments'
       }
     };
 
@@ -1853,8 +1901,29 @@
       qs('#exportXlsxBtn').textContent = t('btn_export_xlsx');
       qs('#zoomBtn').textContent = t('btn_zoom');
       const lp = qs('#loadPilotBtn'); if (lp) lp.textContent = t('btn_load_pilot');
+      const hsp = qs('#loadHspDemoBtn'); if (hsp) hsp.textContent = t('btn_hsp_demo');
+      const imp = qs('#importCsvBtn'); if (imp) imp.textContent = t('btn_import_csv');
+      const ltax = qs('#linkTaxonomy'); if (ltax) ltax.textContent = t('link_taxonomy');
+      const lusr = qs('#loginUser'); if (lusr) lusr.placeholder = t('placeholder_user');
+      const lpw = qs('#loginPass'); if (lpw) lpw.placeholder = t('placeholder_password');
+      const lgin = qs('#loginBtn'); if (lgin) lgin.textContent = t('btn_login');
+      const lgout = qs('#logoutBtn'); if (lgout) lgout.textContent = t('btn_logout');
       qs('#tabMainBtn').textContent = t('tab_main');
       qs('#tabLiveBtn').textContent = t('tab_live');
+      const tsb = qs('#tabScopesBtn'); if (tsb) tsb.textContent = t('tab_scopes');
+      const tal = qs('#tabAlertsBtn'); if (tal) tal.textContent = t('tab_alerts');
+      const tac = qs('#tabActionsBtn'); if (tac) tac.textContent = t('tab_actions');
+      const tdp = qs('#tabDeptsBtn'); if (tdp) tdp.textContent = t('tab_depts');
+      const tcm = qs('#tabComplianceBtn'); if (tcm) tcm.textContent = t('tab_compliance');
+      const tdt = qs('#tabDataBtn'); if (tdt) tdt.textContent = t('tab_data');
+      const tsn = qs('#tabSessionsBtn'); if (tsn) tsn.textContent = t('tab_sessions');
+      const tdd = qs('#tabDeptDashBtn'); if (tdd) tdd.textContent = t('tab_deptdash');
+      const tst = qs('#tabSettingsBtn'); if (tst) tst.textContent = t('tab_settings');
+      const tops = qs('#tabOpsBtn'); if (tops) tops.textContent = t('tab_ops');
+      const tcl = qs('#tabClinicalBtn'); if (tcl) tcl.textContent = t('tab_clinical');
+      const tpr = qs('#tabProjectsBtn'); if (tpr) tpr.textContent = t('tab_projects');
+      const tcf = qs('#tabCfoSaveBtn'); if (tcf) tcf.textContent = t('tab_cfo_savings');
+      const trm = qs('#tabRiskMatrixBtn'); if (trm) trm.textContent = t('tab_ceo_risk');
       qs('#lblKpiTitle').textContent = t('kpi_title');
       qs('#lblEnergyByDept').textContent = t('energy_by_dept');
       qs('#lblWasteComp').textContent = t('waste_composition');
@@ -1897,9 +1966,9 @@
       const hosps = unique(state.data, r=>r.hospital).sort();
       const depts = unique(state.data, r=>r.dept).sort();
 
-      qs('#yearSel').innerHTML = '<option value="">All Years</option>' + years.map(y=>`<option value="${y}">${y}</option>`).join('');
-      qs('#hospSel').innerHTML = '<option value="">All Hospitals</option>' + hosps.map(h=>`<option value="${h}">${h}</option>`).join('');
-      qs('#deptSel').innerHTML = '<option value="">All Departments</option>' + depts.map(d=>`<option value="${d}">${d}</option>`).join('');
+      qs('#yearSel').innerHTML = `<option value="">${t('option_all_years')}</option>` + years.map(y=>`<option value="${y}">${y}</option>`).join('');
+      qs('#hospSel').innerHTML = `<option value="">${t('option_all_hospitals')}</option>` + hosps.map(h=>`<option value="${h}">${h}</option>`).join('');
+      qs('#deptSel').innerHTML = `<option value="">${t('option_all_depts')}</option>` + depts.map(d=>`<option value="${d}">${d}</option>`).join('');
     }
 
     function statusPill(rec){
@@ -3132,6 +3201,20 @@
       if (qs('#loadHspDemoBtn')) qs('#loadHspDemoBtn').addEventListener('click', ()=>{ loadHspDemo().then(()=> seedLiveBase()) })
       if (qs('#importCsvBtn')) qs('#importCsvBtn').addEventListener('click', async ()=>{ try{ await apiFetch('/api/demo/import-all-csv',{ method:'POST' }); const j = await apiFetch('/api/dataset',{ method:'GET' }); const rows = Array.isArray(j.rows)? j.rows: []; if (rows.length){ state.data=rows; saveData(); populateFilters(); applyAll(); const pm = qs('#pilotMsg'); if (pm) pm.textContent = `CSV import ✔️ (${rows.length} rows)` } }catch(_){ } })
       updateEnvBadge()
+      ;(async function ensureData(){
+        try{
+          const j = await apiFetch('/api/dataset',{ method:'GET' });
+          const rows = Array.isArray(j.rows)? j.rows : []
+          if (!rows.length){
+            try{ await apiFetch('/api/demo/import-all-csv',{ method:'POST' }) }catch(_){ }
+            const j2 = await apiFetch('/api/dataset',{ method:'GET' });
+            const rows2 = Array.isArray(j2.rows)? j2.rows : []
+            if (rows2.length){ state.data = rows2; saveData(); populateFilters(); applyAll(); const pm = qs('#pilotMsg'); if (pm) pm.textContent = `CSV import ✔️ (${rows2.length} rows)` }
+          } else {
+            state.data = rows; saveData(); populateFilters(); applyAll();
+          }
+        }catch(_){ /* ignore */ }
+      })();
       qs('#backBtn').addEventListener('click', backToMain);
       if (qs('#loginBtn')) qs('#loginBtn').addEventListener('click', doLogin);
       if (qs('#logoutBtn')) qs('#logoutBtn').addEventListener('click', doLogout);
